@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(STAFF)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  scheduledSurgeries Surgery[] @relation("ScheduledBy")
+  performedSurgeries Surgery[] @relation("PerformedBy")
+
+  @@map("users")
+}
+
+model Patient {
+  id        String   @id @default(cuid())
+  name      String
+  birthDate DateTime
+  age       Int
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  surgeries Surgery[]
+
+  @@map("patients")
+}
+
+model Surgery {
+  id          String        @id @default(cuid())
+  scheduledAt DateTime
+  type        String
+  status      SurgeryStatus @default(SCHEDULED)
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Foreign Keys
+  patientId     String
+  surgeonId     String
+  scheduledById String
+
+  // Relations
+  patient     Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  surgeon     User    @relation("PerformedBy", fields: [surgeonId], references: [id])
+  scheduledBy User    @relation("ScheduledBy", fields: [scheduledById], references: [id])
+
+  @@map("surgeries")
+}
+
+enum UserRole {
+  ADMIN
+  SURGEON
+  STAFF
+}
+
+enum SurgeryStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  POSTPONED
+}
