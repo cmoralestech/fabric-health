@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth'
 // GET /api/patients/[id]/surgeries - Get all surgeries for a specific patient
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,7 +15,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const patientId = params.id
+    const { id: patientId } = await params
 
     // Get all surgeries for the patient
     const surgeries = await prisma.surgery.findMany({

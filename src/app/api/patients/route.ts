@@ -3,14 +3,35 @@ import { getServerSession } from 'next-auth/next'
 import { prisma } from '@/lib/prisma'
 import { authOptions } from '@/lib/auth'
 import { createPatientSchema, calculateAge, sanitizePatientData } from '@/lib/validations'
+import { 
+  getSecurityContext, 
+  hasPermission, 
+  logAuditEvent, 
+  sanitizePHI, 
+  validatePHIInput, 
+  addSecurityHeaders,
+  checkRateLimit 
+} from '@/lib/security'
 
 // GET /api/patients - Get all patients with advanced search and filtering
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session) {
+    // HIPAA Security: Get security context
+    const securityContext = await getSecurityContext(request)
+    if (!securityContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // HIPAA Security: Check permissions
+    if (!hasPermission(securityContext.userRole, 'read', 'patients')) {
+      await logAuditEvent('unauthorized_access', 'patients', 'all', securityContext, false, 'Insufficient permissions')
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // HIPAA Security: Rate limiting
+    if (!checkRateLimit(securityContext.ipAddress)) {
+      await logAuditEvent('rate_limit_exceeded', 'patients', 'all', securityContext, false, 'Rate limit exceeded')
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -113,8 +134,14 @@ export async function GET(request: NextRequest) {
       surgeryCount: patient._count.surgeries
     }))
 
-    return NextResponse.json({
-      patients: patientsWithCounts,
+    // HIPAA Security: Sanitize PHI data before response
+    const sanitizedPatients = patientsWithCounts.map(patient => sanitizePHI(patient))
+
+    // HIPAA Security: Log successful access
+    await logAuditEvent('read_patients', 'patients', 'all', securityContext, true)
+
+    const response = NextResponse.json({
+      patients: sanitizedPatients,
       pagination: {
         page,
         limit,
@@ -124,8 +151,17 @@ export async function GET(request: NextRequest) {
         hasPrev: page > 1
       }
     })
+
+    return addSecurityHeaders(response)
   } catch (error) {
     console.error('Get patients error:', error)
+    
+    // HIPAA Security: Log error
+    const securityContext = await getSecurityContext(request)
+    if (securityContext) {
+      await logAuditEvent('read_patients', 'patients', 'all', securityContext, false, error instanceof Error ? error.message : 'Unknown error')
+    }
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -136,18 +172,41 @@ export async function GET(request: NextRequest) {
 // POST /api/patients - Create a new patient
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session) {
+    // HIPAA Security: Get security context
+    const securityContext = await getSecurityContext(request)
+    if (!securityContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // HIPAA Security: Check permissions
+    if (!hasPermission(securityContext.userRole, 'write', 'patients')) {
+      await logAuditEvent('unauthorized_create', 'patients', 'new', securityContext, false, 'Insufficient permissions')
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // HIPAA Security: Rate limiting
+    if (!checkRateLimit(securityContext.ipAddress, 50, 15 * 60 * 1000)) { // 50 requests per 15 minutes
+      await logAuditEvent('rate_limit_exceeded', 'patients', 'new', securityContext, false, 'Rate limit exceeded')
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
+
     const body = await request.json()
+    
+    // HIPAA Security: Validate PHI input
+    const phiValidation = validatePHIInput(body, ['name', 'birthDate'])
+    if (!phiValidation.valid) {
+      await logAuditEvent('invalid_phi_input', 'patients', 'new', securityContext, false, phiValidation.errors.join(', '))
+      return NextResponse.json(
+        { error: 'Invalid PHI data', details: phiValidation.errors },
+        { status: 400 }
+      )
+    }
     
     // Validate the request body
     const validationResult = createPatientSchema.safeParse(body)
     
     if (!validationResult.success) {
+      await logAuditEvent('validation_failed', 'patients', 'new', securityContext, false, 'Schema validation failed')
       return NextResponse.json(
         { error: 'Validation failed', details: validationResult.error.errors },
         { status: 400 }
@@ -156,8 +215,8 @@ export async function POST(request: NextRequest) {
 
     const { name, birthDate, email, phone } = validationResult.data
     
-    // Sanitize the data
-    const sanitizedData = sanitizePatientData({ name, email, phone })
+    // HIPAA Security: Sanitize PHI data
+    const sanitizedData = sanitizePHI(sanitizePatientData({ name, email, phone }))
     
     // Parse birth date and calculate age
     const parsedBirthDate = new Date(birthDate)
@@ -174,9 +233,20 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(patient, { status: 201 })
+    // HIPAA Security: Log successful creation
+    await logAuditEvent('create_patient', 'patients', patient.id, securityContext, true)
+
+    const response = NextResponse.json(sanitizePHI(patient), { status: 201 })
+    return addSecurityHeaders(response)
   } catch (error) {
     console.error('Create patient error:', error)
+    
+    // HIPAA Security: Log error
+    const securityContext = await getSecurityContext(request)
+    if (securityContext) {
+      await logAuditEvent('create_patient', 'patients', 'new', securityContext, false, error instanceof Error ? error.message : 'Unknown error')
+    }
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

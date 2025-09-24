@@ -50,7 +50,7 @@ export default function PatientsPage() {
   const { data: session, status } = useSession()
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
-  const [viewType, setViewType] = useState<'card' | 'table'>('table') // Default to table view
+  const [viewType, setViewType] = useState<'cards' | 'table'>('table') // Default to table view
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
@@ -71,23 +71,6 @@ export default function PatientsPage() {
     sortBy: 'name',
     sortOrder: 'asc'
   })
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg mb-4">
-            <LoadingSpinner size="lg" />
-          </div>
-          <p className="text-gray-600 font-medium">Loading Patient Manager...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (status === 'unauthenticated') {
-    redirect('/auth/signin')
-  }
 
   const fetchPatients = useCallback(async (page: number = 1) => {
     setLoading(true)
@@ -151,6 +134,24 @@ export default function PatientsPage() {
     return { label: 'Adult', color: 'bg-blue-100 text-blue-800' }
   }
 
+  // Early returns after all hooks
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg mb-4">
+            <LoadingSpinner size="lg" />
+          </div>
+          <p className="text-gray-600 font-medium">Loading Patient Manager...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'unauthenticated') {
+    redirect('/auth/signin')
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30">
       <Navbar />
@@ -196,7 +197,6 @@ export default function PatientsPage() {
             <ViewToggle 
               view={viewType} 
               onViewChange={setViewType}
-              className="shadow-sm"
             />
           </div>
 
