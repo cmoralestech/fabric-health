@@ -112,136 +112,148 @@ export default function Register() {
         </div>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
         <Card>
-          <CardHeader>
-            <CardTitle>Get started</CardTitle>
-            <CardDescription>
-              Create your account to access the surgery management system
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-2xl font-bold text-gray-900">Create Account</CardTitle>
+            <CardDescription className="text-base text-gray-600 mt-2">
+              Join the secure healthcare management system
             </CardDescription>
-            
-            {/* Assessment Note - Display test invitation codes */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-              <h4 className="font-medium text-blue-900 mb-2">📝 Assessment - Test Invitation Codes:</h4>
-              <div className="text-sm text-blue-800 space-y-1">
-                <div><strong>Admin:</strong> ADMIN-2024 or DEMO-ADMIN</div>
-                <div><strong>Surgeon:</strong> SURGEON-2024 or DEMO-SURGEON</div>
-                <div><strong>Staff:</strong> STAFF-2024 or DEMO-STAFF</div>
-              </div>
-              <p className="text-xs text-blue-600 mt-2">
-                💡 In production, invitation codes would be securely generated and sent via email
-              </p>
-            </div>
           </CardHeader>
           
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <CardContent className="px-6 pb-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
 
-              <Input
-                label="Full Name"
-                autoComplete="name"
-                {...register('name')}
-                error={errors.name?.message}
-              />
-
-              <Input
-                label="Email"
-                type="email"
-                autoComplete="email"
-                {...register('email')}
-                error={errors.email?.message}
-              />
-
-              <div>
+              {/* Personal Information Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                  Personal Information
+                </h3>
+                
                 <Input
-                  label="Password"
-                  type="password"
-                  autoComplete="new-password"
-                  {...register('password')}
-                  error={errors.password?.message}
+                  label="Full Name"
+                  autoComplete="name"
+                  {...register('name')}
+                  error={errors.name?.message}
                 />
-                <div className="mt-2 text-xs text-gray-600">
-                  <p className="font-medium mb-1">Password Requirements:</p>
-                  <ul className="space-y-1">
-                    <li>• At least 12 characters long</li>
-                    <li>• One uppercase letter (A-Z)</li>
-                    <li>• One lowercase letter (a-z)</li>
-                    <li>• One number (0-9)</li>
-                    <li>• One special character (!@#$%^&*)</li>
-                  </ul>
-                </div>
-              </div>
 
-              <Input
-                label="Invitation Code"
-                placeholder="Enter your invitation code"
-                {...register('invitationCode')}
-                error={errors.invitationCode?.message}
-              />
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Role
-                </label>
-                <select
-                  {...register('role')}
-                  className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                >
-                  <option value="STAFF">Staff - General healthcare support staff</option>
-                  <option value="SURGEON">Surgeon - Licensed medical doctor performing surgeries</option>
-                  <option value="ADMIN">Administrator - System administrator with full access</option>
-                </select>
-                {errors.role && (
-                  <p className="text-sm text-red-600 mt-1">{errors.role.message}</p>
-                )}
-              </div>
-
-              {/* Medical License for Surgeons */}
-              {selectedRole === 'SURGEON' && (
                 <Input
-                  label="Medical License Number"
-                  placeholder="Enter your medical license number"
-                  {...register('medicalLicense')}
-                  error={errors.medicalLicense?.message}
+                  label="Email Address"
+                  type="email"
+                  autoComplete="email"
+                  {...register('email')}
+                  error={errors.email?.message}
                 />
-              )}
 
-              {/* HIPAA Compliance Acknowledgment */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-start">
-                  <input
-                    type="checkbox"
-                    {...register('hipaaAcknowledgment')}
-                    className="mt-1 mr-3"
+                <div>
+                  <Input
+                    label="Password"
+                    type="password"
+                    autoComplete="new-password"
+                    {...register('password')}
+                    error={errors.password?.message}
                   />
-                  <div className="text-sm">
-                    <p className="font-medium text-yellow-900 mb-2">
-                      HIPAA Compliance Acknowledgment
-                    </p>
-                    <p className="text-yellow-800">
-                      I acknowledge that I understand and will comply with all HIPAA regulations 
-                      regarding the protection of patient health information. I understand that 
-                      unauthorized access, use, or disclosure of protected health information 
-                      is prohibited and may result in civil and criminal penalties.
-                    </p>
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Password Requirements:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs text-gray-600">
+                      <div>• 12+ characters</div>
+                      <div>• Uppercase letter</div>
+                      <div>• Lowercase letter</div>
+                      <div>• Number (0-9)</div>
+                      <div className="sm:col-span-2">• Special character (!@#$%^&*)</div>
+                    </div>
                   </div>
                 </div>
-                {errors.hipaaAcknowledgment && (
-                  <p className="text-sm text-red-600 mt-2">{errors.hipaaAcknowledgment.message}</p>
+              </div>
+
+              {/* Professional Information Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                  Professional Information
+                </h3>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Role
+                  </label>
+                  <select
+                    {...register('role')}
+                    className="w-full h-12 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
+                  >
+                    <option value="STAFF">Staff - General healthcare support staff</option>
+                    <option value="SURGEON">Surgeon - Licensed medical doctor</option>
+                    <option value="ADMIN">Administrator - System administrator</option>
+                  </select>
+                  {errors.role && (
+                    <p className="text-sm text-red-600 mt-1">{errors.role.message}</p>
+                  )}
+                </div>
+
+                {/* Medical License for Surgeons */}
+                {selectedRole === 'SURGEON' && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <Input
+                      label="Medical License Number"
+                      placeholder="Enter your medical license number"
+                      {...register('medicalLicense')}
+                      error={errors.medicalLicense?.message}
+                    />
+                    <p className="text-xs text-blue-600 mt-2">
+                      Required for surgeons to verify medical credentials
+                    </p>
+                  </div>
                 )}
+
+                <Input
+                  label="Invitation Code"
+                  placeholder="Enter your invitation code"
+                  {...register('invitationCode')}
+                  error={errors.invitationCode?.message}
+                />
+              </div>
+
+              {/* HIPAA Compliance Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                  Compliance Agreement
+                </h3>
+                
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <input
+                      type="checkbox"
+                      {...register('hipaaAcknowledgment')}
+                      className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <div className="flex-1">
+                      <p className="font-semibold text-amber-900 mb-2">
+                        HIPAA Compliance Acknowledgment
+                      </p>
+                      <p className="text-sm text-amber-800 leading-relaxed">
+                        I acknowledge that I understand and will comply with all HIPAA regulations 
+                        regarding the protection of patient health information. I understand that 
+                        unauthorized access, use, or disclosure of protected health information 
+                        is prohibited and may result in civil and criminal penalties.
+                      </p>
+                    </div>
+                  </div>
+                  {errors.hipaaAcknowledgment && (
+                    <p className="text-sm text-red-600 mt-2 ml-7">{errors.hipaaAcknowledgment.message}</p>
+                  )}
+                </div>
               </div>
 
               <Button
                 type="submit"
                 isLoading={isSubmitting}
-                className="w-full"
+                className="w-full h-12 text-base font-semibold"
               >
-                Create account
+                Create Account
               </Button>
             </form>
 
@@ -265,6 +277,31 @@ export default function Register() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Assessment - Test Invitation Codes */}
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h3 className="text-sm font-semibold text-blue-800 mb-3">📝 Assessment - Test Invitation Codes:</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="bg-white p-3 rounded border border-blue-200">
+              <div className="font-medium text-blue-900">Admin</div>
+              <div className="text-blue-700 mt-1">ADMIN-2024</div>
+              <div className="text-blue-700">DEMO-ADMIN</div>
+            </div>
+            <div className="bg-white p-3 rounded border border-blue-200">
+              <div className="font-medium text-blue-900">Surgeon</div>
+              <div className="text-blue-700 mt-1">SURGEON-2024</div>
+              <div className="text-blue-700">DEMO-SURGEON</div>
+            </div>
+            <div className="bg-white p-3 rounded border border-blue-200">
+              <div className="font-medium text-blue-900">Staff</div>
+              <div className="text-blue-700 mt-1">STAFF-2024</div>
+              <div className="text-blue-700">DEMO-STAFF</div>
+            </div>
+          </div>
+          <p className="text-xs text-blue-600 mt-3 text-center">
+            💡 In production, invitation codes would be securely generated and sent via email
+          </p>
+        </div>
       </div>
     </div>
   )
