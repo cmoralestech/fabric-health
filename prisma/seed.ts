@@ -57,6 +57,38 @@ async function main() {
     staff = await prisma.user.findUnique({ where: { email: 'staff@hospital.com' } })
   }
 
+  // Create additional surgeons
+  let surgeon2, surgeon3
+  try {
+    surgeon2 = await prisma.user.create({
+      data: {
+        email: 'dr.smith@hospital.com',
+        password: hashedPassword,
+        name: 'Dr. Jennifer Smith',
+        role: 'SURGEON'
+      }
+    })
+    console.log('✅ Surgeon 2 created')
+  } catch (error) {
+    console.log('ℹ️ Surgeon 2 may already exist')
+    surgeon2 = await prisma.user.findUnique({ where: { email: 'dr.smith@hospital.com' } })
+  }
+
+  try {
+    surgeon3 = await prisma.user.create({
+      data: {
+        email: 'dr.jones@hospital.com',
+        password: hashedPassword,
+        name: 'Dr. Michael Jones',
+        role: 'SURGEON'
+      }
+    })
+    console.log('✅ Surgeon 3 created')
+  } catch (error) {
+    console.log('ℹ️ Surgeon 3 may already exist')
+    surgeon3 = await prisma.user.findUnique({ where: { email: 'dr.jones@hospital.com' } })
+  }
+
   console.log('✅ Users created')
 
   // Create a few demo patients
@@ -88,38 +120,221 @@ async function main() {
     patients = await prisma.patient.findMany()
   }
 
-  // Create a few demo surgeries
+  // Create comprehensive demo surgeries
   const today = new Date()
   const surgeryData = []
   
-  if (patients.length >= 3 && admin && surgeon && staff) {
+  if (patients.length >= 10 && admin && surgeon && staff && surgeon2 && surgeon3) {
+    // Today's surgeries
     surgeryData.push(
       {
-        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 8, 0),
-        type: 'Appendectomy',
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 7, 30),
+        type: 'Emergency Appendectomy',
         status: 'IN_PROGRESS',
-        notes: 'Emergency appendectomy - patient experiencing severe abdominal pain',
+        notes: 'Emergency appendectomy - patient experiencing severe abdominal pain with elevated WBC count',
         patientId: patients[0].id,
         surgeonId: surgeon.id,
         scheduledById: admin.id
       },
       {
-        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 30),
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 0),
         type: 'Cataract Surgery',
         status: 'SCHEDULED',
-        notes: 'Right eye cataract removal',
+        notes: 'Right eye cataract removal - patient has 20/200 vision in affected eye',
         patientId: patients[1].id,
         surgeonId: admin.id,
         scheduledById: staff.id
       },
       {
-        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 9, 0),
-        type: 'Knee Replacement',
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 11, 30),
+        type: 'Gallbladder Removal',
         status: 'SCHEDULED',
-        notes: 'Total knee replacement - left knee, patient has severe arthritis',
+        notes: 'Laparoscopic cholecystectomy - patient has gallstones causing recurrent pain',
         patientId: patients[2].id,
         surgeonId: surgeon.id,
         scheduledById: staff.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 14, 0),
+        type: 'Hernia Repair',
+        status: 'SCHEDULED',
+        notes: 'Inguinal hernia repair - patient has been experiencing discomfort for 6 months',
+        patientId: patients[3].id,
+        surgeonId: surgeon.id,
+        scheduledById: admin.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 16, 30),
+        type: 'Knee Arthroscopy',
+        status: 'SCHEDULED',
+        notes: 'Diagnostic arthroscopy - patient has persistent knee pain and limited mobility',
+        patientId: patients[4].id,
+        surgeonId: admin.id,
+        scheduledById: staff.id
+      }
+    )
+
+    // Tomorrow's surgeries
+    surgeryData.push(
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 8, 0),
+        type: 'Total Knee Replacement',
+        status: 'SCHEDULED',
+        notes: 'Bilateral knee replacement - patient has severe osteoarthritis in both knees',
+        patientId: patients[5].id,
+        surgeonId: surgeon.id,
+        scheduledById: staff.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 10, 30),
+        type: 'Hip Replacement',
+        status: 'SCHEDULED',
+        notes: 'Total hip arthroplasty - patient has advanced hip arthritis affecting daily activities',
+        patientId: patients[6].id,
+        surgeonId: surgeon2.id,
+        scheduledById: admin.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 13, 0),
+        type: 'Spinal Fusion',
+        status: 'SCHEDULED',
+        notes: 'L4-L5 spinal fusion - patient has severe back pain and nerve compression',
+        patientId: patients[7].id,
+        surgeonId: surgeon3.id,
+        scheduledById: staff.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 15, 30),
+        type: 'Cardiac Bypass',
+        status: 'SCHEDULED',
+        notes: 'Triple bypass surgery - patient has significant coronary artery disease',
+        patientId: patients[8].id,
+        surgeonId: admin.id,
+        scheduledById: admin.id
+      }
+    )
+
+    // Day after tomorrow
+    surgeryData.push(
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2, 7, 0),
+        type: 'Brain Tumor Removal',
+        status: 'SCHEDULED',
+        notes: 'Craniotomy for meningioma resection - 3cm tumor in frontal lobe',
+        patientId: patients[9].id,
+        surgeonId: surgeon.id,
+        scheduledById: admin.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2, 9, 30),
+        type: 'Lung Biopsy',
+        status: 'SCHEDULED',
+        notes: 'Video-assisted thoracoscopic surgery (VATS) for lung nodule biopsy',
+        patientId: patients[0].id,
+        surgeonId: admin.id,
+        scheduledById: staff.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2, 12, 0),
+        type: 'Prostate Surgery',
+        status: 'SCHEDULED',
+        notes: 'Robotic prostatectomy - patient has localized prostate cancer',
+        patientId: patients[1].id,
+        surgeonId: surgeon.id,
+        scheduledById: staff.id
+      }
+    )
+
+    // This week's additional surgeries
+    surgeryData.push(
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 8, 0),
+        type: 'Shoulder Surgery',
+        status: 'SCHEDULED',
+        notes: 'Rotator cuff repair - patient has torn rotator cuff from sports injury',
+        patientId: patients[2].id,
+        surgeonId: admin.id,
+        scheduledById: staff.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 14, 0),
+        type: 'Thyroidectomy',
+        status: 'SCHEDULED',
+        notes: 'Total thyroidectomy - patient has thyroid nodules with suspicious features',
+        patientId: patients[3].id,
+        surgeonId: surgeon.id,
+        scheduledById: admin.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 4, 9, 0),
+        type: 'Colonoscopy',
+        status: 'SCHEDULED',
+        notes: 'Screening colonoscopy - patient is 50+ and due for routine screening',
+        patientId: patients[4].id,
+        surgeonId: admin.id,
+        scheduledById: staff.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 4, 11, 30),
+        type: 'Endoscopy',
+        status: 'SCHEDULED',
+        notes: 'Upper GI endoscopy - patient has persistent heartburn and difficulty swallowing',
+        patientId: patients[5].id,
+        surgeonId: surgeon.id,
+        scheduledById: staff.id
+      }
+    )
+
+    // Some completed surgeries from last week
+    surgeryData.push(
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 2, 8, 0),
+        type: 'Appendectomy',
+        status: 'COMPLETED',
+        notes: 'Laparoscopic appendectomy - patient recovered well, discharged same day',
+        patientId: patients[6].id,
+        surgeonId: surgeon.id,
+        scheduledById: admin.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1, 10, 0),
+        type: 'Cataract Surgery',
+        status: 'COMPLETED',
+        notes: 'Left eye cataract removal - patient vision improved from 20/200 to 20/25',
+        patientId: patients[7].id,
+        surgeonId: admin.id,
+        scheduledById: staff.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3, 14, 0),
+        type: 'Hernia Repair',
+        status: 'COMPLETED',
+        notes: 'Inguinal hernia repair - patient doing well, no complications',
+        patientId: patients[8].id,
+        surgeonId: surgeon.id,
+        scheduledById: staff.id
+      }
+    )
+
+    // Some cancelled surgeries
+    surgeryData.push(
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1, 16, 0),
+        type: 'Knee Surgery',
+        status: 'CANCELLED',
+        notes: 'Patient cancelled due to personal reasons, will reschedule',
+        patientId: patients[9].id,
+        surgeonId: admin.id,
+        scheduledById: staff.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 17, 0),
+        type: 'Minor Procedure',
+        status: 'CANCELLED',
+        notes: 'Patient developed fever, surgery postponed until cleared by infectious disease',
+        patientId: patients[0].id,
+        surgeonId: surgeon.id,
+        scheduledById: admin.id
       }
     )
   }
@@ -144,7 +359,14 @@ async function main() {
   console.log('\nDemo accounts:')
   console.log('Admin: admin@hospital.com / password123')
   console.log('Surgeon: surgeon@hospital.com / password123')
+  console.log('Surgeon 2: dr.smith@hospital.com / password123')
+  console.log('Surgeon 3: dr.jones@hospital.com / password123')
   console.log('Staff: staff@hospital.com / password123')
+  console.log('\n📊 Test Data Summary:')
+  console.log(`- ${patients.length} patients created`)
+  console.log(`- ${surgeryData.length} surgeries scheduled`)
+  console.log('- Surgeries span multiple days with various statuses')
+  console.log('- Includes emergency, scheduled, completed, and cancelled cases')
 }
 
 main()
