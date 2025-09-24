@@ -6,12 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
   password  String
   name      String
@@ -27,7 +27,7 @@ model User {
 }
 
 model Patient {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   birthDate DateTime
   age       Int
@@ -43,7 +43,7 @@ model Patient {
 }
 
 model Surgery {
-  id          String        @id @default(cuid())
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
   scheduledAt DateTime
   type        String
   status      SurgeryStatus @default(SCHEDULED)
@@ -52,9 +52,9 @@ model Surgery {
   updatedAt   DateTime      @updatedAt
 
   // Foreign Keys
-  patientId     String
-  surgeonId     String
-  scheduledById String
+  patientId     String @db.ObjectId
+  surgeonId     String @db.ObjectId
+  scheduledById String @db.ObjectId
 
   // Relations
   patient     Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)

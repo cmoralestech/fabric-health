@@ -1,6 +1,6 @@
 # Surgery Management System
 
-A secure, modern web application for managing surgical schedules and patient information, built with Next.js, TypeScript, and PostgreSQL.
+A secure, modern web application for managing surgical schedules and patient information, built with Next.js, TypeScript, and MongoDB.
 
 ## 🏥 Features
 
@@ -17,7 +17,7 @@ A secure, modern web application for managing surgical schedules and patient inf
 
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Backend**: Next.js API Routes
-- **Database**: PostgreSQL with Prisma ORM
+- **Database**: MongoDB with Prisma ORM
 - **Authentication**: NextAuth.js
 - **UI**: Tailwind CSS, Headless UI, Lucide Icons
 - **Validation**: Zod
@@ -26,7 +26,7 @@ A secure, modern web application for managing surgical schedules and patient inf
 ## 📋 Prerequisites
 
 - Node.js 18+ 
-- PostgreSQL database
+- MongoDB (local installation or MongoDB Atlas account)
 - npm or yarn
 
 ## 🛠️ Installation & Setup
@@ -45,12 +45,17 @@ A secure, modern web application for managing surgical schedules and patient inf
 3. **Set up environment variables**
    Create a `.env.local` file in the root directory:
    ```bash
-   # Database
-   DATABASE_URL="postgresql://username:password@localhost:5432/surgery_management?schema=public"
+   # Database - Choose one option:
+   
+   # Option 1: MongoDB Atlas (recommended for production)
+   DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/surgery-management?retryWrites=true&w=majority"
+   
+   # Option 2: Local MongoDB
+   # DATABASE_URL="mongodb://localhost:27017/surgery-management"
    
    # NextAuth.js
    NEXTAUTH_URL=http://localhost:3000
-   NEXTAUTH_SECRET=your-super-secret-jwt-key-change-this-in-production
+   NEXTAUTH_SECRET=your-super-secret-jwt-key-change-this-in-production-at-least-32-chars
    ```
 
 4. **Set up the database**

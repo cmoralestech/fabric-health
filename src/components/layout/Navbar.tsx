@@ -16,13 +16,18 @@ export default function Navbar() {
   ]
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
+    <nav className="bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/dashboard" className="text-xl font-bold text-blue-600">
-                SurgeryManager
+              <Link href="/dashboard" className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+                  SurgeryManager
+                </span>
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -32,7 +37,7 @@ export default function Navbar() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-700 hover:text-blue-600 hover:border-blue-600 border-b-2 border-transparent transition-colors"
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
                   >
                     <Icon className="w-4 h-4 mr-2" />
                     {item.name}
@@ -44,17 +49,27 @@ export default function Navbar() {
           
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                Welcome, {session?.user?.name}
-              </span>
-              <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                {session?.user?.role}
-              </span>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-semibold text-white">
+                    {session?.user?.name?.charAt(0)}
+                  </span>
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium text-gray-900">
+                    {session?.user?.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {session?.user?.role?.toLowerCase()}
+                  </p>
+                </div>
+              </div>
+              <div className="h-6 w-px bg-gray-300"></div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => signOut()}
-                className="text-gray-700 hover:text-red-600"
+                className="text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
