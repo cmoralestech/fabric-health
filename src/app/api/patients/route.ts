@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
     if (!validationResult.success) {
       await logAuditEvent('validation_failed', 'patients', 'new', securityContext, false, 'Schema validation failed')
       return NextResponse.json(
-        { error: 'Validation failed', details: validationResult.error.errors },
+        { error: 'Validation failed', details: validationResult.error },
         { status: 400 }
       )
     }

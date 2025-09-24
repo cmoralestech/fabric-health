@@ -138,6 +138,11 @@ export function sanitizePHI(data: any): any {
   if (Array.isArray(data)) {
     return data.map(item => sanitizePHI(item))
   }
+
+  if ( data instanceof Date ) {
+    return data
+  }
+
   
   if (typeof data === 'object' && data !== null) {
     const sanitized: any = {}
