@@ -21,24 +21,67 @@ export async function GET(request: NextRequest) {
 
     const where = status && status !== 'ALL' ? { status: status as any } : {}
 
-    const [surgeries, total] = await Promise.all([
-      prisma.surgery.findMany({
-        where,
-        include: {
-          patient: true,
-          surgeon: {
-            select: { id: true, name: true, email: true }
-          },
-          scheduledBy: {
-            select: { id: true, name: true, email: true }
+    // First check if we have any data at all
+    const totalCount = await prisma.surgery.count({ where })
+    
+    if (totalCount === 0) {
+      return NextResponse.json({
+        surgeries: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0
+        }
+      })
+    }
+
+    // Use raw query to avoid relationship issues with corrupted data
+    const surgeries = await prisma.surgery.findMany({
+      where,
+      select: {
+        id: true,
+        scheduledAt: true,
+        type: true,
+        status: true,
+        notes: true,
+        createdAt: true,
+        updatedAt: true,
+        patientId: true,
+        surgeonId: true,
+        scheduledById: true,
+        patient: {
+          select: {
+            id: true,
+            name: true,
+            age: true,
+            email: true,
+            phone: true
           }
         },
-        orderBy: { scheduledAt: 'asc' },
-        skip,
-        take: limit
-      }),
-      prisma.surgery.count({ where })
-    ])
+        surgeon: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true
+          }
+        },
+        scheduledBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true
+          }
+        }
+      },
+      orderBy: { scheduledAt: 'asc' },
+      skip,
+      take: limit
+    })
+
+    const total = await prisma.surgery.count({ where })
 
     return NextResponse.json({
       surgeries,
@@ -51,6 +94,23 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Get surgeries error:', error)
+    
+    // Check if it's a database connection error
+    if (error instanceof Error && error.message.includes('DNS resolution')) {
+      return NextResponse.json(
+        { error: 'Database connection failed. Please check MongoDB Atlas connection.' },
+        { status: 503 }
+      )
+    }
+    
+    // Check if it's a Prisma client error
+    if (error instanceof Error && error.message.includes('PrismaClient')) {
+      return NextResponse.json(
+        { error: 'Database query failed. Please ensure database is properly seeded.' },
+        { status: 500 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
