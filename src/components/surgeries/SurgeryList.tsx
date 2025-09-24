@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import ViewToggle from '@/components/ui/ViewToggle'
+import ConfirmationModal from '@/components/ui/ConfirmationModal'
 import SurgeryTableView from './SurgeryTableView'
 import ExportSurgeriesButton from './ExportSurgeriesButton'
 import { formatDateTime, formatDate, formatTime } from '@/lib/utils'
@@ -84,6 +85,12 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
   const [view, setView] = useState<'cards' | 'table'>('cards')
   const [selectedSurgeries, setSelectedSurgeries] = useState<Set<string>>(new Set())
   const [showBulkActions, setShowBulkActions] = useState(false)
+  
+  // Confirmation modal states
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [showCompleteModal, setShowCompleteModal] = useState(false)
+  const [selectedSurgeryForAction, setSelectedSurgeryForAction] = useState<Surgery | null>(null)
+  const [isActionLoading, setIsActionLoading] = useState(false)
 
   // Utility functions for enterprise features
   const getPriorityColor = (priority: string) => {
@@ -193,27 +200,43 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
     fetchSurgeries()
   }, [filter])
 
-  const handleCancelSurgery = async (surgeryId: string) => {
-    if (!confirm('Are you sure you want to cancel this surgery?')) return
+  const handleCancelSurgery = (surgery: Surgery) => {
+    setSelectedSurgeryForAction(surgery)
+    setShowCancelModal(true)
+  }
 
+  const confirmCancelSurgery = async () => {
+    if (!selectedSurgeryForAction) return
+
+    setIsActionLoading(true)
     try {
-      const response = await fetch(`/api/surgeries/${surgeryId}`, {
+      const response = await fetch(`/api/surgeries/${selectedSurgeryForAction.id}`, {
         method: 'DELETE'
       })
       
       if (response.ok) {
         fetchSurgeries() // Refresh the list
+        setShowCancelModal(false)
+        setSelectedSurgeryForAction(null)
       }
     } catch (error) {
       console.error('Error cancelling surgery:', error)
+    } finally {
+      setIsActionLoading(false)
     }
   }
 
-  const handleCompleteSurgery = async (surgeryId: string) => {
-    if (!confirm('Are you sure you want to mark this surgery as completed?')) return
+  const handleCompleteSurgery = (surgery: Surgery) => {
+    setSelectedSurgeryForAction(surgery)
+    setShowCompleteModal(true)
+  }
 
+  const confirmCompleteSurgery = async () => {
+    if (!selectedSurgeryForAction) return
+
+    setIsActionLoading(true)
     try {
-      const response = await fetch(`/api/surgeries/${surgeryId}`, {
+      const response = await fetch(`/api/surgeries/${selectedSurgeryForAction.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -223,9 +246,13 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
       
       if (response.ok) {
         fetchSurgeries() // Refresh the list
+        setShowCompleteModal(false)
+        setSelectedSurgeryForAction(null)
       }
     } catch (error) {
       console.error('Error completing surgery:', error)
+    } finally {
+      setIsActionLoading(false)
     }
   }
 
@@ -582,7 +609,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                           <UserCheck className="w-3 h-3 text-green-600" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">Dr. {surgery.surgeon.name}</p>
+                          <p className="text-sm font-medium text-gray-900">{surgery.surgeon.name}</p>
                           <p className="text-xs text-gray-500">Lead Surgeon</p>
                         </div>
                       </div>
@@ -593,7 +620,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                             <User className="w-3 h-3 text-blue-600" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Dr. {surgery.assistantSurgeon.name}</p>
+                            <p className="text-sm font-medium text-gray-900">{surgery.assistantSurgeon.name}</p>
                             <p className="text-xs text-gray-500">Assistant Surgeon</p>
                           </div>
                         </div>
@@ -605,7 +632,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                             <User className="w-3 h-3 text-purple-600" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Dr. {surgery.anesthesiologist.name}</p>
+                            <p className="text-sm font-medium text-gray-900">{surgery.anesthesiologist.name}</p>
                             <p className="text-xs text-gray-500">Anesthesiologist</p>
                           </div>
                         </div>
@@ -657,7 +684,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleCompleteSurgery(surgery.id)}
+                        onClick={() => handleCompleteSurgery(surgery)}
                         className="flex-1 text-xs hover:bg-green-50 hover:border-green-200 hover:text-green-700 transition-colors"
                       >
                         <CheckCircle className="w-3 h-3 mr-1" />
@@ -668,7 +695,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleCancelSurgery(surgery.id)}
+                      onClick={() => handleCancelSurgery(surgery)}
                       className="flex-1 text-xs hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition-colors"
                     >
                       <XCircle className="w-3 h-3 mr-1" />
@@ -710,6 +737,40 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
           )}
         </div>
       )}
+
+      {/* Cancel Surgery Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={confirmCancelSurgery}
+        title="Cancel Surgery"
+        message={
+          selectedSurgeryForAction 
+            ? `Are you sure you want to cancel the ${selectedSurgeryForAction.type} surgery for ${selectedSurgeryForAction.patient.name}? This action cannot be undone.`
+            : "Are you sure you want to cancel this surgery?"
+        }
+        confirmText="Yes, Cancel Surgery"
+        cancelText="Keep Surgery"
+        type="danger"
+        isLoading={isActionLoading}
+      />
+
+      {/* Complete Surgery Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showCompleteModal}
+        onClose={() => setShowCompleteModal(false)}
+        onConfirm={confirmCompleteSurgery}
+        title="Mark Surgery as Completed"
+        message={
+          selectedSurgeryForAction 
+            ? `Are you sure you want to mark the ${selectedSurgeryForAction.type} surgery for ${selectedSurgeryForAction.patient.name} as completed?`
+            : "Are you sure you want to mark this surgery as completed?"
+        }
+        confirmText="Mark as Completed"
+        cancelText="Cancel"
+        type="success"
+        isLoading={isActionLoading}
+      />
     </div>
   )
 }

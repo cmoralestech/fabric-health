@@ -5,11 +5,39 @@ import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import SurgeryList from '@/components/surgeries/SurgeryList'
 import ScheduleSurgeryForm from '@/components/surgeries/ScheduleSurgeryForm'
+import EditSurgeryModal from '@/components/surgeries/EditSurgeryModal'
 import Navbar from '@/components/layout/Navbar'
+
+interface Surgery {
+  id: string
+  scheduledAt: string
+  type: string
+  status: string
+  notes?: string
+  patient: {
+    id: string
+    name: string
+    age: number
+    email?: string
+    phone?: string
+  }
+  surgeon: {
+    id: string
+    name: string
+    email: string
+  }
+  scheduledBy: {
+    id: string
+    name: string
+    email: string
+  }
+}
 
 export default function Dashboard() {
   const { data: session, status } = useSession()
   const [showScheduleForm, setShowScheduleForm] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [selectedSurgery, setSelectedSurgery] = useState<Surgery | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
   if (status === 'loading') {
@@ -33,6 +61,21 @@ export default function Dashboard() {
     setRefreshKey(prev => prev + 1)
   }
 
+  const handleEditSurgery = (surgery: Surgery) => {
+    setSelectedSurgery(surgery)
+    setShowEditModal(true)
+  }
+
+  const handleEditClose = () => {
+    setShowEditModal(false)
+    setSelectedSurgery(null)
+  }
+
+  const handleEditSuccess = () => {
+    setRefreshKey(prev => prev + 1)
+    handleEditClose()
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -41,10 +84,7 @@ export default function Dashboard() {
         <SurgeryList
           key={refreshKey}
           onScheduleNew={() => setShowScheduleForm(true)}
-          onEditSurgery={(surgery) => {
-            // TODO: Implement edit functionality
-            console.log('Edit surgery:', surgery)
-          }}
+          onEditSurgery={handleEditSurgery}
         />
       </main>
 
@@ -52,6 +92,15 @@ export default function Dashboard() {
         <ScheduleSurgeryForm
           onClose={() => setShowScheduleForm(false)}
           onSuccess={handleScheduleSuccess}
+        />
+      )}
+
+      {showEditModal && (
+        <EditSurgeryModal
+          isOpen={showEditModal}
+          onClose={handleEditClose}
+          surgery={selectedSurgery}
+          onSurgeryUpdated={handleEditSuccess}
         />
       )}
     </div>

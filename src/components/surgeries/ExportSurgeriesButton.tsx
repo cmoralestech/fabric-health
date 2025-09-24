@@ -143,7 +143,7 @@ export default function ExportSurgeriesButton({ surgeries, selectedSurgeries }: 
                 <td>${new Date(surgery.scheduledAt).toLocaleDateString()} ${new Date(surgery.scheduledAt).toLocaleTimeString()}</td>
                 <td>${surgery.operatingRoom || 'TBD'}</td>
                 <td>${surgery.patient.name} (${surgery.patient.age})</td>
-                <td>Dr. ${surgery.surgeon.name}</td>
+                <td>${surgery.surgeon.name}</td>
                 <td>${surgery.estimatedDuration ? `~${Math.floor(surgery.estimatedDuration / 60)}h ${surgery.estimatedDuration % 60}m` : 'TBD'}</td>
                 <td>${surgery.notes?.substring(0, 50) || ''}${surgery.notes && surgery.notes.length > 50 ? '...' : ''}</td>
               </tr>
@@ -200,7 +200,7 @@ export default function ExportSurgeriesButton({ surgeries, selectedSurgeries }: 
       </Button>
 
       {showExportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <CardTitle className="text-xl font-semibold">Export Surgery Data</CardTitle>

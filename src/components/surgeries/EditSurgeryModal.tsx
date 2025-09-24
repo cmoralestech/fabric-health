@@ -12,6 +12,13 @@ interface Surgery {
   type: string
   status: string
   notes?: string
+  patient: {
+    id: string
+    name: string
+    age: number
+    email?: string
+    phone?: string
+  }
   surgeon: {
     id: string
     name: string
@@ -153,7 +160,7 @@ export default function EditSurgeryModal({
     setLoading(true)
     try {
       const response = await fetch(`/api/surgeries/${surgery.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -190,7 +197,7 @@ export default function EditSurgeryModal({
   const currentStatus = surgeryStatuses.find(s => s.value === surgery.status)
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4">
       <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle className="text-xl font-semibold flex items-center gap-2">

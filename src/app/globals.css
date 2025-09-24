@@ -32,3 +32,5 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Force cache refresh - Modal backdrops updated to 20% opacity - v2 */

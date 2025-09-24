@@ -37,8 +37,8 @@ interface Surgery {
 interface SurgeryTableViewProps {
   surgeries: Surgery[]
   onEditSurgery: (surgery: Surgery) => void
-  onCancelSurgery: (id: string) => void
-  onCompleteSurgery: (id: string) => void
+  onCancelSurgery: (surgery: Surgery) => void
+  onCompleteSurgery: (surgery: Surgery) => void
 }
 
 type SortField = 'scheduledAt' | 'type' | 'patient' | 'surgeon' | 'status'
@@ -187,7 +187,7 @@ export default function SurgeryTableView({
                           <UserCheck className="w-4 h-4 text-green-600" />
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">Dr. {surgery.surgeon.name}</div>
+                          <div className="font-medium text-gray-900">{surgery.surgeon.name}</div>
                           <div className="text-sm text-gray-500">Surgeon</div>
                         </div>
                       </div>
@@ -210,7 +210,7 @@ export default function SurgeryTableView({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => onCancelSurgery(surgery.id)}
+                            onClick={() => onCancelSurgery(surgery)}
                             className="text-xs hover:bg-red-50 hover:border-red-200 hover:text-red-700"
                           >
                             <Trash2 className="w-3 h-3 mr-1" />
@@ -221,7 +221,7 @@ export default function SurgeryTableView({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => onCompleteSurgery(surgery.id)}
+                            onClick={() => onCompleteSurgery(surgery)}
                             className="text-xs hover:bg-green-50 hover:border-green-200 hover:text-green-700"
                           >
                             <CheckCircle className="w-3 h-3 mr-1" />
