@@ -32,3 +32,4 @@ export function formatTime(date: Date | string): string {
     minute: '2-digit'
   })
 }
+

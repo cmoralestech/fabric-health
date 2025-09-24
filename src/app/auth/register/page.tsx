@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { createUserSchema } from '@/lib/validations'
+import { createUserSchema, INVITATION_CODES } from '@/lib/validations'
 import Link from 'next/link'
 
 type RegisterData = {
@@ -15,24 +15,37 @@ type RegisterData = {
   email: string
   password: string
   role: 'ADMIN' | 'SURGEON' | 'STAFF'
+  invitationCode: string
+  medicalLicense?: string
+  hipaaAcknowledgment: boolean
 }
 
 export default function Register() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'SURGEON' | 'STAFF'>('STAFF')
   const router = useRouter()
 
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
+    watch,
+    setValue
   } = useForm<RegisterData>({
     resolver: zodResolver(createUserSchema),
     defaultValues: {
-      role: 'STAFF'
+      role: 'STAFF',
+      hipaaAcknowledgment: false
     }
   })
+
+  const watchedRole = watch('role')
+  
+  useEffect(() => {
+    setSelectedRole(watchedRole)
+  }, [watchedRole])
 
   const onSubmit = async (data: RegisterData) => {
     setIsSubmitting(true)
@@ -106,6 +119,19 @@ export default function Register() {
             <CardDescription>
               Create your account to access the surgery management system
             </CardDescription>
+            
+            {/* Assessment Note - Display test invitation codes */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+              <h4 className="font-medium text-blue-900 mb-2">📝 Assessment - Test Invitation Codes:</h4>
+              <div className="text-sm text-blue-800 space-y-1">
+                <div><strong>Admin:</strong> ADMIN-2024 or DEMO-ADMIN</div>
+                <div><strong>Surgeon:</strong> SURGEON-2024 or DEMO-SURGEON</div>
+                <div><strong>Staff:</strong> STAFF-2024 or DEMO-STAFF</div>
+              </div>
+              <p className="text-xs text-blue-600 mt-2">
+                💡 In production, invitation codes would be securely generated and sent via email
+              </p>
+            </div>
           </CardHeader>
           
           <CardContent>
@@ -131,12 +157,31 @@ export default function Register() {
                 error={errors.email?.message}
               />
 
+              <div>
+                <Input
+                  label="Password"
+                  type="password"
+                  autoComplete="new-password"
+                  {...register('password')}
+                  error={errors.password?.message}
+                />
+                <div className="mt-2 text-xs text-gray-600">
+                  <p className="font-medium mb-1">Password Requirements:</p>
+                  <ul className="space-y-1">
+                    <li>• At least 12 characters long</li>
+                    <li>• One uppercase letter (A-Z)</li>
+                    <li>• One lowercase letter (a-z)</li>
+                    <li>• One number (0-9)</li>
+                    <li>• One special character (!@#$%^&*)</li>
+                  </ul>
+                </div>
+              </div>
+
               <Input
-                label="Password"
-                type="password"
-                autoComplete="new-password"
-                {...register('password')}
-                error={errors.password?.message}
+                label="Invitation Code"
+                placeholder="Enter your invitation code"
+                {...register('invitationCode')}
+                error={errors.invitationCode?.message}
               />
 
               <div>
@@ -147,12 +192,47 @@ export default function Register() {
                   {...register('role')}
                   className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
-                  <option value="STAFF">Staff</option>
-                  <option value="SURGEON">Surgeon</option>
-                  <option value="ADMIN">Administrator</option>
+                  <option value="STAFF">Staff - General healthcare support staff</option>
+                  <option value="SURGEON">Surgeon - Licensed medical doctor performing surgeries</option>
+                  <option value="ADMIN">Administrator - System administrator with full access</option>
                 </select>
                 {errors.role && (
                   <p className="text-sm text-red-600 mt-1">{errors.role.message}</p>
+                )}
+              </div>
+
+              {/* Medical License for Surgeons */}
+              {selectedRole === 'SURGEON' && (
+                <Input
+                  label="Medical License Number"
+                  placeholder="Enter your medical license number"
+                  {...register('medicalLicense')}
+                  error={errors.medicalLicense?.message}
+                />
+              )}
+
+              {/* HIPAA Compliance Acknowledgment */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-start">
+                  <input
+                    type="checkbox"
+                    {...register('hipaaAcknowledgment')}
+                    className="mt-1 mr-3"
+                  />
+                  <div className="text-sm">
+                    <p className="font-medium text-yellow-900 mb-2">
+                      HIPAA Compliance Acknowledgment
+                    </p>
+                    <p className="text-yellow-800">
+                      I acknowledge that I understand and will comply with all HIPAA regulations 
+                      regarding the protection of patient health information. I understand that 
+                      unauthorized access, use, or disclosure of protected health information 
+                      is prohibited and may result in civil and criminal penalties.
+                    </p>
+                  </div>
+                </div>
+                {errors.hipaaAcknowledgment && (
+                  <p className="text-sm text-red-600 mt-2">{errors.hipaaAcknowledgment.message}</p>
                 )}
               </div>
 
@@ -189,3 +269,4 @@ export default function Register() {
     </div>
   )
 }
+

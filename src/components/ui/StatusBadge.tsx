@@ -72,3 +72,4 @@ export function StatusBadge({ status, size = 'md', showIcon = true, className }:
     </span>
   )
 }
+

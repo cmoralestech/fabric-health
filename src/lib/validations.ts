@@ -1,11 +1,49 @@
 import { z } from 'zod'
 
+// Valid invitation codes for assessment
+export const INVITATION_CODES = {
+  'ADMIN-2024': 'ADMIN',
+  'SURGEON-2024': 'SURGEON', 
+  'STAFF-2024': 'STAFF',
+  'DEMO-ADMIN': 'ADMIN',
+  'DEMO-SURGEON': 'SURGEON',
+  'DEMO-STAFF': 'STAFF'
+} as const
+
 // User validation schemas
+// Enhanced password validation for healthcare systems
+const passwordSchema = z.string()
+  .min(12, 'Password must be at least 12 characters')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .regex(/[0-9]/, 'Password must contain at least one number')
+  .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character')
+
 export const createUserSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: passwordSchema,
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  role: z.enum(['ADMIN', 'SURGEON', 'STAFF']).default('STAFF')
+  role: z.enum(['ADMIN', 'SURGEON', 'STAFF']).default('STAFF'),
+  invitationCode: z.string().min(1, 'Invitation code is required'),
+  medicalLicense: z.string().optional(),
+  hipaaAcknowledgment: z.boolean().refine((val) => val === true, {
+    message: 'You must acknowledge HIPAA compliance requirements'
+  })
+}).refine((data) => {
+  const validCode = INVITATION_CODES[data.invitationCode as keyof typeof INVITATION_CODES]
+  return validCode === data.role
+}, {
+  message: 'Invalid invitation code for the selected role',
+  path: ['invitationCode']
+}).refine((data) => {
+  // Require medical license for surgeons
+  if (data.role === 'SURGEON' && (!data.medicalLicense || data.medicalLicense.trim() === '')) {
+    return false
+  }
+  return true
+}, {
+  message: 'Medical license number is required for surgeons',
+  path: ['medicalLicense']
 })
 
 export const loginSchema = z.object({
@@ -88,3 +126,4 @@ export const sanitizePatientData = (data: any) => {
     phone: data.phone ? sanitizeString(data.phone) : null
   }
 }
+

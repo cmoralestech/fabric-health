@@ -26,57 +26,135 @@ A secure, modern web application for managing surgical schedules and patient inf
 ## 📋 Prerequisites
 
 - Node.js 18+ 
-- MongoDB (local installation or MongoDB Atlas account)
+- MongoDB Atlas account (free tier available at [https://www.mongodb.com/products/platform](https://www.mongodb.com/products/platform))
 - npm or yarn
 
 ## 🛠️ Installation & Setup
 
-1. **Clone the repository**
+> **📝 Assessment Note**: For assessment purposes, the `.env` and `.env.local` files are included in this repository with pre-configured settings. In a production environment, these files should NEVER be committed to version control and should be added to `.gitignore`.
+
+### 🚀 Quick Start Guide
+
+#### For Assessment/Demo:
+1. **Clone and install**
    ```bash
    git clone <your-repo-url>
    cd surgery-management
-   ```
-
-2. **Install dependencies**
-   ```bash
    npm install
    ```
 
-3. **Set up environment variables**
-   Create a `.env.local` file in the root directory:
+2. **Set up your MongoDB Atlas database**
+   - Create a free account at [MongoDB Atlas](https://www.mongodb.com/products/platform)
+   - Create a new cluster (M0 free tier)
+   - Get your connection string and update `.env.local`:
    ```bash
-   # Database - Choose one option:
-   
-   # Option 1: MongoDB Atlas (recommended for production)
-   DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/surgery-management?retryWrites=true&w=majority"
-   
-   # Option 2: Local MongoDB
-   # DATABASE_URL="mongodb://localhost:27017/surgery-management"
-   
-   # NextAuth.js
-   NEXTAUTH_URL=http://localhost:3000
-   NEXTAUTH_SECRET=your-super-secret-jwt-key-change-this-in-production-at-least-32-chars
+   DATABASE_URL="mongodb+srv://your-username:your-password@your-cluster.mongodb.net/surgery-management?retryWrites=true&w=majority"
    ```
 
-4. **Set up the database**
+3. **Initialize the database and start**
    ```bash
-   # Generate Prisma client
-   npm run db:generate
-   
-   # Push schema to database
-   npm run db:push
-   
-   # Seed with demo data
-   npm run db:seed
+   npm run db:push    # Set up database schema
+   npm run db:seed    # Add demo data
+   npm run dev        # Start the application
    ```
 
-5. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-6. **Open your browser**
+4. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
+
+### 📋 Detailed Setup Instructions
+
+<details>
+<summary>Click to expand detailed setup guide</summary>
+
+#### Step 1: Clone and Install Dependencies
+```bash
+git clone <your-repo-url>
+cd surgery-management
+npm install
+```
+
+#### Step 2: MongoDB Atlas Setup
+1. **Create Account**: Visit [MongoDB Atlas](https://www.mongodb.com/products/platform)
+2. **Create Cluster**: 
+   - Choose "Build a Database"
+   - Select "M0 Sandbox" (Free tier)
+   - Choose your preferred cloud provider and region
+3. **Database Access**:
+   - Go to "Database Access" → "Add New Database User"
+   - Create username/password (save these!)
+   - Grant "Read and write to any database" permissions
+4. **Network Access**:
+   - Go to "Network Access" → "Add IP Address"
+   - Add your current IP or "0.0.0.0/0" for testing (not recommended for production)
+5. **Get Connection String**:
+   - Go to "Database" → "Connect" → "Connect your application"
+   - Copy the connection string
+   - Replace `<password>` with your database user password
+
+#### Step 3: Configure Environment Variables
+Create or update `.env.local` file:
+```bash
+DATABASE_URL="mongodb+srv://your-username:your-password@your-cluster.mongodb.net/surgery-management?retryWrites=true&w=majority"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-super-secret-jwt-key-change-this-in-production-at-least-32-chars-long"
+NODE_ENV="development"
+```
+
+#### Step 4: Initialize Database
+```bash
+npm run db:generate  # Generate Prisma client
+npm run db:push      # Create database schema
+npm run db:seed      # Add demo data (users, patients, surgeries)
+```
+
+#### Step 5: Start Development Server
+```bash
+npm run dev
+```
+
+The application will be available at [http://localhost:3000](http://localhost:3000)
+
+#### Troubleshooting Common Issues
+- **Database Connection Error**: Verify your MongoDB Atlas connection string and ensure your IP is whitelisted
+- **Prisma Generate Error**: Run `npm run db:generate` if you see Prisma client errors
+- **Port 3000 in use**: Change the port with `npm run dev -- -p 3001`
+- **Environment Variables**: Ensure `.env.local` exists and has the correct DATABASE_URL
+
+</details>
+
+## 🔧 Environment Files for Assessment
+
+**Important Note**: For this assessment, example environment files are provided to demonstrate the required configuration. In a real production environment, these files should:
+
+1. **Never be committed to version control**
+2. **Be added to `.gitignore`**
+3. **Contain actual secrets and sensitive data**
+4. **Be managed through secure deployment pipelines**
+
+### Example .env.local content:
+```bash
+# Surgery Management System - Development Configuration
+# NOTE: This file is included for assessment purposes only.
+# In production, these files should NEVER be committed to version control.
+
+# Database Configuration - MongoDB Atlas
+DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/surgery-management?retryWrites=true&w=majority"
+
+# NextAuth.js Configuration
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-super-secret-jwt-key-change-this-in-production-at-least-32-chars-long"
+
+# Application Environment
+NODE_ENV="development"
+```
+
+### Production Environment Variables:
+For production deployment, ensure these environment variables are properly configured through your deployment platform's secure environment variable management:
+
+- `DATABASE_URL`: Your production MongoDB connection string
+- `NEXTAUTH_URL`: Your production application URL
+- `NEXTAUTH_SECRET`: A strong, unique secret key (minimum 32 characters)
+- `NODE_ENV`: Set to "production"
 
 ## 👥 Demo Accounts
 
@@ -165,31 +243,15 @@ surgery-management/
 
 ## 🚀 Deployment
 
-### Option 1: Docker (Recommended)
-
-The easiest way to deploy is using Docker:
-
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd surgery-management
-
-# Start with Docker Compose (includes PostgreSQL)
-docker-compose up -d
-
-# Run database migrations and seed
-docker-compose exec app npx prisma db push
-docker-compose exec app npm run db:seed
-```
-
-The application will be available at `http://localhost:3000`
-
-### Option 2: Manual Deployment
+### Production Deployment
 
 #### Database Setup
-1. Set up a PostgreSQL database (recommended: Supabase, PlanetScale, or AWS RDS)
-2. Update `DATABASE_URL` in your environment variables
-3. Run migrations: `npm run db:push`
+1. **MongoDB Atlas** (recommended): 
+   - Create a production cluster at [MongoDB Atlas](https://www.mongodb.com/products/platform)
+   - Configure network access and database users
+   - Get your production connection string
+2. Update `DATABASE_URL` in your deployment environment variables
+3. Run database setup: `npm run db:push`
 4. Seed demo data: `npm run db:seed`
 
 #### Application Deployment
@@ -200,16 +262,19 @@ The application can be deployed to various platforms:
 - **AWS (ECS/Fargate)**
 - **Railway**
 - **Render**
+- **Digital Ocean App Platform**
 
-### Option 3: AWS ECS Deployment
+### Cloud Deployment Options
 
-For production AWS deployment:
+#### Vercel (Recommended for Next.js)
+1. Connect your GitHub repository to Vercel
+2. Configure environment variables in Vercel dashboard
+3. Deploy automatically on push
 
-1. **Build and push Docker image to ECR**
-2. **Create ECS task definition**
-3. **Set up RDS PostgreSQL instance**
-4. **Configure environment variables**
-5. **Deploy using ECS Fargate**
+#### Other Platforms
+- **Netlify**: Full-stack deployment with serverless functions
+- **Railway**: Simple deployment with automatic builds
+- **AWS/Azure/GCP**: Enterprise-grade cloud deployment
 
 ### Environment Variables
 Ensure these environment variables are set in production:
@@ -230,8 +295,8 @@ The application includes:
 ### Architecture Decisions
 
 1. **Next.js Full-Stack**: Chosen for its excellent TypeScript support, API routes, and deployment simplicity
-2. **PostgreSQL**: Selected for ACID compliance, complex queries, and healthcare data integrity requirements
-3. **Prisma ORM**: Provides type safety, easy migrations, and excellent developer experience
+2. **MongoDB**: Selected for flexible document storage, scalability, and excellent integration with modern web applications
+3. **Prisma ORM**: Provides type safety, easy database management, and excellent developer experience with MongoDB
 4. **NextAuth.js**: Industry-standard authentication with built-in security features
 5. **Tailwind CSS**: Enables rapid UI development with consistent design system
 
@@ -241,7 +306,8 @@ The application includes:
 - Passwords are hashed using bcrypt with appropriate salt rounds
 - JWT tokens are used for session management
 - Role-based access control is implemented
-- Database queries use parameterized statements via Prisma
+- Database queries are secured through Prisma's type-safe query builder
+- MongoDB ObjectId validation prevents injection attacks
 
 ### Performance Optimizations
 
@@ -270,14 +336,3 @@ The application includes:
 ## 📄 License
 
 This project is licensed under the MIT License.
-
-## 🆘 Support
-
-For technical issues or questions:
-1. Check the existing issues in the repository
-2. Create a new issue with detailed information
-3. Include steps to reproduce any bugs
-
----
-
-Built with ❤️ for healthcare professionals
