@@ -105,7 +105,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-200px)]">
+      <main className="flex-1 mx-auto py-4 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-200px)]">
         <SurgeryList
           key={refreshKey}
           onScheduleNew={() => setShowScheduleForm(true)}
