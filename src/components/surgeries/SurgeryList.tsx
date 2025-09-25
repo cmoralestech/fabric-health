@@ -1,367 +1,330 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { StatusBadge } from '@/components/ui/StatusBadge'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { Pagination } from '@/components/ui/Pagination'
-import ViewToggle from '@/components/ui/ViewToggle'
-import ConfirmationModal from '@/components/ui/ConfirmationModal'
-import SurgeryTableView from './SurgeryTableView'
-import ExportSurgeriesButton from './ExportSurgeriesButton'
-import { formatDateTime, formatDate, formatTime } from '@/lib/utils'
-import { Calendar, Clock, User, UserCheck, AlertCircle, CheckCircle, XCircle, Plus, Filter, Search, MoreVertical, Edit, Trash2, X } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import ViewToggle from "@/components/ui/ViewToggle";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import SurgeryTableView from "./SurgeryTableView";
+import ExportSurgeriesButton from "./ExportSurgeriesButton";
+import { formatDateTime, formatDate, formatTime } from "@/lib/utils";
+import {
+  Calendar,
+  Clock,
+  User,
+  UserCheck,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  Plus,
+  Filter,
+  Search,
+  MoreVertical,
+  Edit,
+  Trash2,
+  X,
+} from "lucide-react";
 
 interface Surgery {
-  id: string
-  scheduledAt: string
-  type: string
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'POSTPONED'
-  priority: 'EMERGENCY' | 'URGENT' | 'ROUTINE' | 'ELECTIVE'
-  estimatedDuration?: number // in minutes
-  actualDuration?: number // in minutes
-  operatingRoom?: string
-  notes?: string
+  id: string;
+  scheduledAt: string;
+  type: string;
+  status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "POSTPONED";
+  priority: "EMERGENCY" | "URGENT" | "ROUTINE" | "ELECTIVE";
+  estimatedDuration?: number; // in minutes
+  actualDuration?: number; // in minutes
+  operatingRoom?: string;
+  notes?: string;
   patient: {
-    id: string
-    name: string
-    age: number
-    birthDate: string
-  }
+    id: string;
+    name: string;
+    age: number;
+    birthDate: string;
+  };
   surgeon: {
-    id: string
-    name: string
-    email: string
-  }
+    id: string;
+    name: string;
+    email: string;
+  };
   scheduledBy: {
-    id: string
-    name: string
-    email: string
-  }
+    id: string;
+    name: string;
+    email: string;
+  };
   assistantSurgeon?: {
-    id: string
-    name: string
-    email: string
-  }
+    id: string;
+    name: string;
+    email: string;
+  };
   anesthesiologist?: {
-    id: string
-    name: string
-    email: string
-  }
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 interface SurgeryListProps {
-  onScheduleNew: () => void
-  onEditSurgery: (surgery: Surgery) => void
+  onScheduleNew: () => void;
+  onEditSurgery: (surgery: Surgery) => void;
 }
 
 const filterOptions = [
-  { value: 'ALL', label: 'All Surgeries', count: 0 },
-  { value: 'SCHEDULED', label: 'Scheduled', count: 0 },
-  { value: 'IN_PROGRESS', label: 'In Progress', count: 0 },
-  { value: 'COMPLETED', label: 'Completed', count: 0 },
-  { value: 'CANCELLED', label: 'Cancelled', count: 0 },
-  { value: 'POSTPONED', label: 'Postponed', count: 0 }
-]
+  { value: "ALL", label: "All Surgeries", count: 0 },
+  { value: "SCHEDULED", label: "Scheduled", count: 0 },
+  { value: "IN_PROGRESS", label: "In Progress", count: 0 },
+  { value: "COMPLETED", label: "Completed", count: 0 },
+  { value: "CANCELLED", label: "Cancelled", count: 0 },
+  { value: "POSTPONED", label: "Postponed", count: 0 },
+];
 
+const priorityOptions = [
+  { value: "ALL", label: "All Priorities", count: 0 },
+  { value: "EMERGENCY", label: "Emergency", count: 0 },
+  { value: "URGENT", label: "Urgent", count: 0 },
+  { value: "ROUTINE", label: "Routine", count: 0 },
+  { value: "ELECTIVE", label: "Elective", count: 0 },
+];
 
-export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryListProps) {
-  const [surgeries, setSurgeries] = useState<Surgery[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('ALL')
-  const [dateFilter, setDateFilter] = useState('ALL')
-  const [typeFilter, setTypeFilter] = useState('ALL')
-  const [surgeonFilter, setSurgeonFilter] = useState('ALL')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [showSearch, setShowSearch] = useState(false)
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
-  const [view, setView] = useState<'cards' | 'table'>('cards')
-  const [selectedSurgeries, setSelectedSurgeries] = useState<Set<string>>(new Set())
-  const [showBulkActions, setShowBulkActions] = useState(false)
-  
-  // Pagination state
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 20,
-    total: 0,
-    totalPages: 0,
-    hasNext: false,
-    hasPrev: false
-  })
-  
+export default function SurgeryList({
+  onScheduleNew,
+  onEditSurgery,
+}: SurgeryListProps) {
+  const [surgeries, setSurgeries] = useState<Surgery[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("ALL");
+  const [priorityFilter, setPriorityFilter] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [view, setView] = useState<"cards" | "table">("cards");
+  const [selectedSurgeries, setSelectedSurgeries] = useState<Set<string>>(
+    new Set()
+  );
+  const [showBulkActions, setShowBulkActions] = useState(false);
+
   // Confirmation modal states
-  const [showCancelModal, setShowCancelModal] = useState(false)
-  const [showCompleteModal, setShowCompleteModal] = useState(false)
-  const [selectedSurgeryForAction, setSelectedSurgeryForAction] = useState<Surgery | null>(null)
-  const [isActionLoading, setIsActionLoading] = useState(false)
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [selectedSurgeryForAction, setSelectedSurgeryForAction] =
+    useState<Surgery | null>(null);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   // Utility functions for enterprise features
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'EMERGENCY': return 'bg-red-100 text-red-800 border-red-200'
-      case 'URGENT': return 'bg-orange-100 text-orange-800 border-orange-200'
-      case 'ROUTINE': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'ELECTIVE': return 'bg-green-100 text-green-800 border-green-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+      case "EMERGENCY":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "URGENT":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "ROUTINE":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "ELECTIVE":
+        return "bg-green-100 text-green-800 border-green-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  }
+  };
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
-      case 'EMERGENCY': return <AlertCircle className="w-3 h-3" />
-      case 'URGENT': return <Clock className="w-3 h-3" />
-      case 'ROUTINE': return <Calendar className="w-3 h-3" />
-      case 'ELECTIVE': return <CheckCircle className="w-3 h-3" />
-      default: return <Calendar className="w-3 h-3" />
+      case "EMERGENCY":
+        return <AlertCircle className="w-3 h-3" />;
+      case "URGENT":
+        return <Clock className="w-3 h-3" />;
+      case "ROUTINE":
+        return <Calendar className="w-3 h-3" />;
+      case "ELECTIVE":
+        return <CheckCircle className="w-3 h-3" />;
+      default:
+        return <Calendar className="w-3 h-3" />;
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'SCHEDULED': return 'bg-blue-100 text-blue-800'
-      case 'IN_PROGRESS': return 'bg-orange-100 text-orange-800'
-      case 'COMPLETED': return 'bg-green-100 text-green-800'
-      case 'CANCELLED': return 'bg-red-100 text-red-800'
-      case 'POSTPONED': return 'bg-purple-100 text-purple-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case "SCHEDULED":
+        return "bg-blue-100 text-blue-800";
+      case "IN_PROGRESS":
+        return "bg-orange-100 text-orange-800";
+      case "COMPLETED":
+        return "bg-green-100 text-green-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
+      case "POSTPONED":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const formatDuration = (minutes?: number) => {
-    if (!minutes) return 'Not specified'
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
-    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
-  }
+    if (!minutes) return "Not specified";
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  };
 
   // Bulk operations handlers
   const toggleSurgerySelection = (surgeryId: string) => {
-    const newSelected = new Set(selectedSurgeries)
+    const newSelected = new Set(selectedSurgeries);
     if (newSelected.has(surgeryId)) {
-      newSelected.delete(surgeryId)
+      newSelected.delete(surgeryId);
     } else {
-      newSelected.add(surgeryId)
+      newSelected.add(surgeryId);
     }
-    setSelectedSurgeries(newSelected)
-    setShowBulkActions(newSelected.size > 0)
-  }
+    setSelectedSurgeries(newSelected);
+    setShowBulkActions(newSelected.size > 0);
+  };
 
   const selectAllSurgeries = () => {
-    const allIds = new Set(filteredSurgeries.map(s => s.id))
-    setSelectedSurgeries(allIds)
-    setShowBulkActions(true)
-  }
+    const allIds = new Set(filteredSurgeries.map((s) => s.id));
+    setSelectedSurgeries(allIds);
+    setShowBulkActions(true);
+  };
 
   const clearSelection = () => {
-    setSelectedSurgeries(new Set())
-    setShowBulkActions(false)
-  }
+    setSelectedSurgeries(new Set());
+    setShowBulkActions(false);
+  };
 
   const handleBulkStatusUpdate = async (newStatus: string) => {
-    if (!confirm(`Update ${selectedSurgeries.size} surgeries to ${newStatus}?`)) return
+    if (!confirm(`Update ${selectedSurgeries.size} surgeries to ${newStatus}?`))
+      return;
 
     try {
-      const promises = Array.from(selectedSurgeries).map(id =>
+      const promises = Array.from(selectedSurgeries).map((id) =>
         fetch(`/api/surgeries/${id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus })
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
         })
-      )
-      
-      await Promise.all(promises)
-      fetchSurgeries()
-      clearSelection()
+      );
+
+      await Promise.all(promises);
+      fetchSurgeries();
+      clearSelection();
     } catch (error) {
-      console.error('Bulk update error:', error)
+      console.error("Bulk update error:", error);
     }
-  }
+  };
 
   const handleBulkCancel = async () => {
-    if (!confirm(`Cancel ${selectedSurgeries.size} surgeries?`)) return
-    await handleBulkStatusUpdate('CANCELLED')
-  }
+    if (!confirm(`Cancel ${selectedSurgeries.size} surgeries?`)) return;
+    await handleBulkStatusUpdate("CANCELLED");
+  };
 
-  const fetchSurgeries = async (page: number = 1) => {
+  const fetchSurgeries = async () => {
     try {
-      const params = new URLSearchParams({
-        status: filter,
-        page: page.toString(),
-        limit: pagination.limit.toString()
-      })
-      
-      const response = await fetch(`/api/surgeries?${params}`)
+      const response = await fetch(`/api/surgeries?status=${filter}`);
       if (response.ok) {
-        const data = await response.json()
-        setSurgeries(data.surgeries)
-        setPagination(data.pagination)
+        const data = await response.json();
+        setSurgeries(data.surgeries);
       }
     } catch (error) {
-      console.error('Error fetching surgeries:', error)
+      console.error("Error fetching surgeries:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
-  const handlePageChange = (page: number) => {
-    fetchSurgeries(page)
-  }
-
-  const resetAllFilters = () => {
-    setFilter('ALL')
-    setDateFilter('ALL')
-    setTypeFilter('ALL')
-    setSurgeonFilter('ALL')
-    setSearchTerm('')
-    setShowAdvancedFilters(false)
-  }
+  };
 
   useEffect(() => {
-    fetchSurgeries(1) // Reset to page 1 when filter changes
-  }, [filter])
-
-  // Reset pagination when advanced filters change
-  useEffect(() => {
-    if (dateFilter !== 'ALL' || typeFilter !== 'ALL' || surgeonFilter !== 'ALL') {
-      fetchSurgeries(1)
-    }
-  }, [dateFilter, typeFilter, surgeonFilter])
+    fetchSurgeries();
+  }, [filter]);
 
   const handleCancelSurgery = (surgery: Surgery) => {
-    setSelectedSurgeryForAction(surgery)
-    setShowCancelModal(true)
-  }
+    setSelectedSurgeryForAction(surgery);
+    setShowCancelModal(true);
+  };
 
   const confirmCancelSurgery = async () => {
-    if (!selectedSurgeryForAction) return
+    if (!selectedSurgeryForAction) return;
 
-    setIsActionLoading(true)
+    setIsActionLoading(true);
     try {
-      const response = await fetch(`/api/surgeries/${selectedSurgeryForAction.id}`, {
-        method: 'DELETE'
-      })
-      
+      const response = await fetch(
+        `/api/surgeries/${selectedSurgeryForAction.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
       if (response.ok) {
-        fetchSurgeries() // Refresh the list
-        setShowCancelModal(false)
-        setSelectedSurgeryForAction(null)
+        fetchSurgeries(); // Refresh the list
+        setShowCancelModal(false);
+        setSelectedSurgeryForAction(null);
       }
     } catch (error) {
-      console.error('Error cancelling surgery:', error)
+      console.error("Error cancelling surgery:", error);
     } finally {
-      setIsActionLoading(false)
+      setIsActionLoading(false);
     }
-  }
+  };
 
   const handleCompleteSurgery = (surgery: Surgery) => {
-    setSelectedSurgeryForAction(surgery)
-    setShowCompleteModal(true)
-  }
+    setSelectedSurgeryForAction(surgery);
+    setShowCompleteModal(true);
+  };
 
   const confirmCompleteSurgery = async () => {
-    if (!selectedSurgeryForAction) return
+    if (!selectedSurgeryForAction) return;
 
-    setIsActionLoading(true)
+    setIsActionLoading(true);
     try {
-      const response = await fetch(`/api/surgeries/${selectedSurgeryForAction.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'COMPLETED' }),
-      })
-      
+      const response = await fetch(
+        `/api/surgeries/${selectedSurgeryForAction.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "COMPLETED" }),
+        }
+      );
+
       if (response.ok) {
-        fetchSurgeries() // Refresh the list
-        setShowCompleteModal(false)
-        setSelectedSurgeryForAction(null)
+        fetchSurgeries(); // Refresh the list
+        setShowCompleteModal(false);
+        setSelectedSurgeryForAction(null);
       }
     } catch (error) {
-      console.error('Error completing surgery:', error)
+      console.error("Error completing surgery:", error);
     } finally {
-      setIsActionLoading(false)
+      setIsActionLoading(false);
     }
-  }
+  };
 
-  const filters = ['ALL', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'POSTPONED']
+  const filters = [
+    "ALL",
+    "SCHEDULED",
+    "IN_PROGRESS",
+    "COMPLETED",
+    "CANCELLED",
+    "POSTPONED",
+  ];
 
-  // Enhanced filtering with date, type, surgeon, and search criteria
-  const filteredSurgeries = surgeries.filter(surgery => {
-    // Date filter
-    if (dateFilter !== 'ALL') {
-      const surgeryDate = new Date(surgery.scheduledAt)
-      const today = new Date()
-      const tomorrow = new Date(today)
-      tomorrow.setDate(today.getDate() + 1)
-      
-      switch (dateFilter) {
-        case 'TODAY':
-          if (surgeryDate.toDateString() !== today.toDateString()) return false
-          break
-        case 'TOMORROW':
-          if (surgeryDate.toDateString() !== tomorrow.toDateString()) return false
-          break
-        case 'THIS_WEEK':
-          const weekStart = new Date(today)
-          weekStart.setDate(today.getDate() - today.getDay())
-          const weekEnd = new Date(weekStart)
-          weekEnd.setDate(weekStart.getDate() + 6)
-          if (surgeryDate < weekStart || surgeryDate > weekEnd) return false
-          break
-        case 'NEXT_WEEK':
-          const nextWeekStart = new Date(today)
-          nextWeekStart.setDate(today.getDate() + (7 - today.getDay()))
-          const nextWeekEnd = new Date(nextWeekStart)
-          nextWeekEnd.setDate(nextWeekStart.getDate() + 6)
-          if (surgeryDate < nextWeekStart || surgeryDate > nextWeekEnd) return false
-          break
-        case 'PAST':
-          if (surgeryDate >= today) return false
-          break
-      }
-    }
-    
-    // Type filter (categorize surgeries by type)
-    if (typeFilter !== 'ALL') {
-      const surgeryType = surgery.type.toLowerCase()
-      switch (typeFilter) {
-        case 'EMERGENCY':
-          if (!surgeryType.includes('emergency') && !surgeryType.includes('appendectomy')) return false
-          break
-        case 'CARDIAC':
-          if (!surgeryType.includes('cardiac') && !surgeryType.includes('bypass') && !surgeryType.includes('heart')) return false
-          break
-        case 'ORTHOPEDIC':
-          if (!surgeryType.includes('knee') && !surgeryType.includes('hip') && !surgeryType.includes('shoulder') && !surgeryType.includes('spinal') && !surgeryType.includes('arthroscopy')) return false
-          break
-        case 'GENERAL':
-          if (!surgeryType.includes('gallbladder') && !surgeryType.includes('hernia') && !surgeryType.includes('appendectomy') && !surgeryType.includes('colonoscopy') && !surgeryType.includes('endoscopy')) return false
-          break
-        case 'SPECIALTY':
-          if (!surgeryType.includes('cataract') && !surgeryType.includes('brain') && !surgeryType.includes('lung') && !surgeryType.includes('prostate') && !surgeryType.includes('thyroid')) return false
-          break
-      }
-    }
-    
-    // Surgeon filter
-    if (surgeonFilter !== 'ALL' && surgery.surgeon.name !== surgeonFilter) return false
-    
+  // Enhanced filtering with priority, search, and other criteria
+  const filteredSurgeries = surgeries.filter((surgery) => {
     // Search term filter
     if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase()
-      const matchesSearch = (
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch =
         surgery.type.toLowerCase().includes(searchLower) ||
         surgery.patient.name.toLowerCase().includes(searchLower) ||
         surgery.surgeon.name.toLowerCase().includes(searchLower) ||
         surgery.operatingRoom?.toLowerCase().includes(searchLower) ||
-        surgery.notes?.toLowerCase().includes(searchLower)
-      )
-      if (!matchesSearch) return false
+        surgery.notes?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
     }
 
-    return true
-  })
+    // Priority filter
+    if (priorityFilter !== "ALL" && surgery.priority !== priorityFilter) {
+      return false;
+    }
+
+    return true;
+  });
 
   if (loading) {
     return (
@@ -371,7 +334,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
           <p className="text-gray-600">Loading surgeries...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -379,7 +342,9 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
       {/* Compact Professional Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-200">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold text-gray-900">Surgery Schedule</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Surgery Schedule
+          </h1>
           <div className="flex items-center gap-6 text-sm text-gray-500">
             <span className="flex items-center gap-1">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -387,21 +352,32 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
             </span>
             <span className="flex items-center gap-1">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              {filteredSurgeries.filter(s => s.status === 'SCHEDULED').length} Scheduled
+              {
+                filteredSurgeries.filter((s) => s.status === "SCHEDULED").length
+              }{" "}
+              Scheduled
             </span>
             <span className="flex items-center gap-1">
               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              {filteredSurgeries.filter(s => s.status === 'IN_PROGRESS').length} Active
+              {
+                filteredSurgeries.filter((s) => s.status === "IN_PROGRESS")
+                  .length
+              }{" "}
+              Active
             </span>
             <span className="flex items-center gap-1">
               <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              {filteredSurgeries.filter(s => s.status === 'CANCELLED').length} Cancelled
+              {
+                filteredSurgeries.filter((s) => s.priority === "EMERGENCY")
+                  .length
+              }{" "}
+              Emergency
             </span>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            onClick={onScheduleNew} 
+          <Button
+            onClick={onScheduleNew}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -426,50 +402,48 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
               />
             </div>
           </div>
-          
+
           {/* Filter Controls */}
           <div className="flex items-center gap-3">
             <Button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               variant="outline"
               size="sm"
-              className={`${showAdvancedFilters ? 'bg-blue-50 border-blue-200 text-blue-700' : 'text-gray-600'}`}
+              className={`${
+                showAdvancedFilters
+                  ? "bg-blue-50 border-blue-200 text-blue-700"
+                  : "text-gray-600"
+              }`}
             >
               <Filter className="w-4 h-4 mr-2" />
               Filters
             </Button>
-            
-            {(dateFilter !== 'ALL' || typeFilter !== 'ALL' || surgeonFilter !== 'ALL' || searchTerm) && (
-              <Button
-                onClick={resetAllFilters}
-                variant="outline"
-                size="sm"
-                className="text-gray-600 hover:bg-gray-50"
-              >
-                <X className="w-4 h-4 mr-2" />
-                Clear Filters
-              </Button>
-            )}
-            
-            <ExportSurgeriesButton 
-              surgeries={filteredSurgeries} 
+
+            <ExportSurgeriesButton
+              surgeries={filteredSurgeries}
               selectedSurgeries={selectedSurgeries}
             />
-            
+
             <ViewToggle view={view} onViewChange={setView} />
-            
+
             {filteredSurgeries.length > 0 && (
               <Button
-                onClick={selectedSurgeries.size === filteredSurgeries.length ? clearSelection : selectAllSurgeries}
+                onClick={
+                  selectedSurgeries.size === filteredSurgeries.length
+                    ? clearSelection
+                    : selectAllSurgeries
+                }
                 variant="outline"
                 size="sm"
                 className="text-gray-600 hover:bg-gray-50"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
-                {selectedSurgeries.size === filteredSurgeries.length ? 'Deselect All' : 'Select All'}
+                {selectedSurgeries.size === filteredSurgeries.length
+                  ? "Deselect All"
+                  : "Select All"}
               </Button>
             )}
-            
+
             {selectedSurgeries.size > 0 && (
               <Button
                 onClick={() => setShowBulkActions(!showBulkActions)}
@@ -484,58 +458,49 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
           </div>
         </div>
 
-        {/* Advanced Filters Panel - Updated with new intuitive filters */}
+        {/* Advanced Filters Panel */}
         {showAdvancedFilters && (
           <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Date Range Filter */}
+              {/* Priority Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Priority Level
+                </label>
                 <select
-                  value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="ALL">All Dates</option>
-                  <option value="TODAY">Today</option>
-                  <option value="TOMORROW">Tomorrow</option>
-                  <option value="THIS_WEEK">This Week</option>
-                  <option value="NEXT_WEEK">Next Week</option>
-                  <option value="PAST">Past Surgeries</option>
+                  {priorityOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </div>
-              
-              {/* Surgery Type Filter */}
+
+              {/* Additional filters can be added here */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Surgery Type</label>
-                <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Operating Room
+                </label>
+                <input
+                  type="text"
+                  placeholder="Filter by OR..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="ALL">All Types</option>
-                  <option value="EMERGENCY">Emergency</option>
-                  <option value="CARDIAC">Cardiac</option>
-                  <option value="ORTHOPEDIC">Orthopedic</option>
-                  <option value="GENERAL">General Surgery</option>
-                  <option value="SPECIALTY">Specialty</option>
-                </select>
+                />
               </div>
-              
-              {/* Surgeon Filter */}
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Surgeon</label>
-                <select
-                  value={surgeonFilter}
-                  onChange={(e) => setSurgeonFilter(e.target.value)}
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Surgeon
+                </label>
+                <input
+                  type="text"
+                  placeholder="Filter by surgeon..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="ALL">All Surgeons</option>
-                  <option value="Dr. Sarah Admin">Dr. Sarah Admin</option>
-                  <option value="Dr. John Surgeon">Dr. John Surgeon</option>
-                  <option value="Dr. Jennifer Smith">Dr. Jennifer Smith</option>
-                  <option value="Dr. Michael Jones">Dr. Michael Jones</option>
-                </select>
+                />
               </div>
             </div>
           </div>
@@ -547,11 +512,13 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-purple-600" />
-                <span className="font-medium text-purple-900">{selectedSurgeries.size} surgeries selected</span>
+                <span className="font-medium text-purple-900">
+                  {selectedSurgeries.size} surgeries selected
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Button
-                  onClick={() => handleBulkStatusUpdate('IN_PROGRESS')}
+                  onClick={() => handleBulkStatusUpdate("IN_PROGRESS")}
                   size="sm"
                   variant="outline"
                   className="border-purple-300 text-purple-700 hover:bg-purple-100"
@@ -559,7 +526,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                   Mark In Progress
                 </Button>
                 <Button
-                  onClick={() => handleBulkStatusUpdate('POSTPONED')}
+                  onClick={() => handleBulkStatusUpdate("POSTPONED")}
                   size="sm"
                   variant="outline"
                   className="border-orange-300 text-orange-700 hover:bg-orange-100"
@@ -591,49 +558,63 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
       {/* Compact Filters */}
       <div className="flex flex-wrap gap-2 items-center">
         {filters.map((status) => {
-          const count = status === 'ALL' ? pagination.total : surgeries.filter(s => s.status === status).length
+          const count =
+            status === "ALL"
+              ? surgeries.length
+              : surgeries.filter((s) => s.status === status).length;
           return (
             <Button
               key={status}
-              variant={filter === status ? 'primary' : 'outline'}
+              variant={filter === status ? "primary" : "outline"}
               size="sm"
               onClick={() => setFilter(status)}
               className={`text-xs ${
-                filter === status 
-                  ? 'bg-blue-600 text-white border-blue-600' 
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                filter === status
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
               }`}
             >
-              {status === 'ALL' ? 'All' : status.replace('_', ' ')}
+              {status === "ALL" ? "All" : status.replace("_", " ")}
               {count > 0 && (
-                <span className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${
-                  filter === status ? 'bg-white/20' : 'bg-gray-100 text-gray-600'
-                }`}>
+                <span
+                  className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${
+                    filter === status
+                      ? "bg-white/20"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
                   {count}
                 </span>
               )}
             </Button>
-          )
+          );
         })}
       </div>
 
       {/* Enterprise Surgery Content - Cards or Table View */}
-      {view === 'cards' ? (
-        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3 min-h-[400px]">
+      {view === "cards" ? (
+        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
           {filteredSurgeries.map((surgery) => {
-            const isUpcoming = new Date(surgery.scheduledAt) > new Date()
-            const isToday = new Date(surgery.scheduledAt).toDateString() === new Date().toDateString()
-            const isEmergency = surgery.type.toLowerCase().includes('emergency')
-            const isUrgent = surgery.status === 'IN_PROGRESS'
-            
+            const isUpcoming = new Date(surgery.scheduledAt) > new Date();
+            const isToday =
+              new Date(surgery.scheduledAt).toDateString() ===
+              new Date().toDateString();
+            const isEmergency = surgery.priority === "EMERGENCY";
+            const isUrgent = surgery.priority === "URGENT";
+
             return (
-              <Card key={surgery.id} className={`group hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 border overflow-hidden ${
-                isEmergency ? 'border-red-300 bg-red-50/30' : 
-                isUrgent ? 'border-orange-300 bg-orange-50/30' :
-                isToday ? 'border-blue-300 bg-blue-50/30' : 
-                'border-gray-200 hover:border-gray-300'
-              }`}>
-                
+              <Card
+                key={surgery.id}
+                className={`group hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 border overflow-hidden ${
+                  isEmergency
+                    ? "border-red-300 bg-red-50/30"
+                    : isUrgent
+                    ? "border-orange-300 bg-orange-50/30"
+                    : isToday
+                    ? "border-blue-300 bg-blue-50/30"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
                 {/* Enhanced Header with Priority and Selection */}
                 <CardHeader className="pb-3 relative">
                   <div className="flex justify-between items-start">
@@ -646,11 +627,15 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                         className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                       />
                     </div>
-                    
+
                     <div className="space-y-2 flex-1 ml-6">
                       {/* Priority Badge */}
                       <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${getPriorityColor(surgery.priority)}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold border ${getPriorityColor(
+                            surgery.priority
+                          )}`}
+                        >
                           {getPriorityIcon(surgery.priority)}
                           <span className="ml-1">{surgery.priority}</span>
                         </span>
@@ -660,11 +645,11 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                           </span>
                         )}
                       </div>
-                      
+
                       <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-blue-700 transition-colors">
                         {surgery.type}
                       </CardTitle>
-                      
+
                       {/* Date, Time, and OR */}
                       <div className="flex items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
@@ -678,14 +663,18 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                         {surgery.operatingRoom && (
                           <div className="flex items-center gap-1">
                             <div className="w-4 h-4 bg-purple-100 rounded flex items-center justify-center">
-                              <span className="text-purple-600 text-xs font-bold">OR</span>
+                              <span className="text-purple-600 text-xs font-bold">
+                                OR
+                              </span>
                             </div>
-                            <span className="font-medium">{surgery.operatingRoom}</span>
+                            <span className="font-medium">
+                              {surgery.operatingRoom}
+                            </span>
                           </div>
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col items-end gap-2">
                       <StatusBadge status={surgery.status} />
                       {surgery.estimatedDuration && (
@@ -696,7 +685,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                     </div>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-4">
                   {/* Patient Information */}
                   <div className="bg-blue-50 rounded-lg p-3">
@@ -705,46 +694,63 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                         <User className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold text-gray-900">{surgery.patient.name}</p>
-                        <p className="text-sm text-gray-600">Age {surgery.patient.age} • ID: {surgery.patient.id.slice(-6).toUpperCase()}</p>
+                        <p className="font-semibold text-gray-900">
+                          {surgery.patient.name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Age {surgery.patient.age} • ID:{" "}
+                          {surgery.patient.id.slice(-6).toUpperCase()}
+                        </p>
                       </div>
                     </div>
                   </div>
 
                   {/* Medical Team */}
                   <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-gray-700">Medical Team</h4>
+                    <h4 className="text-sm font-semibold text-gray-700">
+                      Medical Team
+                    </h4>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
                           <UserCheck className="w-3 h-3 text-green-600" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{surgery.surgeon.name}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {surgery.surgeon.name}
+                          </p>
                           <p className="text-xs text-gray-500">Lead Surgeon</p>
                         </div>
                       </div>
-                      
+
                       {surgery.assistantSurgeon && (
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
                             <User className="w-3 h-3 text-blue-600" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-900">{surgery.assistantSurgeon.name}</p>
-                            <p className="text-xs text-gray-500">Assistant Surgeon</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {surgery.assistantSurgeon.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Assistant Surgeon
+                            </p>
                           </div>
                         </div>
                       )}
-                      
+
                       {surgery.anesthesiologist && (
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
                             <User className="w-3 h-3 text-purple-600" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-900">{surgery.anesthesiologist.name}</p>
-                            <p className="text-xs text-gray-500">Anesthesiologist</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {surgery.anesthesiologist.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Anesthesiologist
+                            </p>
                           </div>
                         </div>
                       )}
@@ -756,14 +762,20 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                     <div className="bg-gray-50 rounded-lg p-3">
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className="text-sm font-medium text-gray-700">Duration</p>
+                          <p className="text-sm font-medium text-gray-700">
+                            Duration
+                          </p>
                           {surgery.estimatedDuration && (
-                            <p className="text-xs text-gray-500">Est: {formatDuration(surgery.estimatedDuration)}</p>
+                            <p className="text-xs text-gray-500">
+                              Est: {formatDuration(surgery.estimatedDuration)}
+                            </p>
                           )}
                         </div>
                         {surgery.actualDuration && (
                           <div className="text-right">
-                            <p className="text-sm font-semibold text-gray-900">{formatDuration(surgery.actualDuration)}</p>
+                            <p className="text-sm font-semibold text-gray-900">
+                              {formatDuration(surgery.actualDuration)}
+                            </p>
                             <p className="text-xs text-gray-500">Actual</p>
                           </div>
                         )}
@@ -774,8 +786,12 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                   {/* Clinical Notes */}
                   {surgery.notes && (
                     <div className="bg-amber-50 border-l-4 border-amber-400 p-3 rounded-r-lg">
-                      <p className="text-xs text-amber-800 font-semibold mb-1">Clinical Notes</p>
-                      <p className="text-xs text-amber-700 line-clamp-3">{surgery.notes}</p>
+                      <p className="text-xs text-amber-800 font-semibold mb-1">
+                        Clinical Notes
+                      </p>
+                      <p className="text-xs text-amber-700 line-clamp-3">
+                        {surgery.notes}
+                      </p>
                     </div>
                   )}
 
@@ -790,8 +806,8 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                       <Edit className="w-3 h-3 mr-1" />
                       Edit
                     </Button>
-                    
-                    {surgery.status === 'SCHEDULED' && (
+
+                    {surgery.status === "SCHEDULED" && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -802,7 +818,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                         Complete
                       </Button>
                     )}
-                    
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -815,8 +831,75 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                   </div>
                 </CardContent>
               </Card>
-            )
+            );
           })}
+        </div>
+      ) : filteredSurgeries.length === 0 ? (
+        // Table view empty state with proper table structure
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium text-gray-900">
+                    Date & Time
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-900">
+                    Surgery Type
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-900">
+                    Patient
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-900">
+                    Surgeon
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-900">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-900">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div className="flex-1 flex items-center justify-center min-h-[400px] py-16">
+            <div className="text-center max-w-md mx-auto">
+              <Calendar className="mx-auto h-16 w-16 text-gray-400 mb-6" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                {searchTerm
+                  ? "No surgeries match your search"
+                  : filter === "ALL"
+                  ? "No surgeries found"
+                  : `No ${filter.toLowerCase()} surgeries`}
+              </h3>
+              <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+                {searchTerm
+                  ? `Try adjusting your search terms or clearing filters to see more results.`
+                  : filter === "ALL"
+                  ? "Get started by scheduling your first surgery to begin managing your surgical calendar."
+                  : `Try selecting a different filter or schedule a new surgery.`}
+              </p>
+              {!searchTerm && filter === "ALL" && (
+                <div className="space-y-3">
+                  <Button
+                    onClick={onScheduleNew}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Schedule New Surgery
+                  </Button>
+                  <p className="text-xs text-gray-400">
+                    Start managing your surgical schedule efficiently
+                  </p>
+                </div>
+              )}
+              {searchTerm && (
+                <Button onClick={() => setSearchTerm("")} variant="outline">
+                  Clear Search
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       ) : (
         <SurgeryTableView
@@ -827,36 +910,48 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
         />
       )}
 
-      {filteredSurgeries.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
-            {searchTerm ? 'No surgeries match your search' : 'No surgeries found'}
-          </h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {searchTerm 
-              ? `Try adjusting your search terms.` 
-              : filter === 'ALL' 
-                ? 'Get started by scheduling a new surgery.' 
-                : `No ${filter.toLowerCase()} surgeries.`
-            }
-          </p>
-          {!searchTerm && filter === 'ALL' && (
-            <div className="mt-6">
-              <Button onClick={onScheduleNew}>Schedule New Surgery</Button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {!loading && surgeries.length > 0 && pagination.totalPages > 1 && (
-        <div className="mt-6 flex justify-center">
-                <Pagination
-                  currentPage={pagination.page}
-                  totalPages={pagination.totalPages}
-                  onPageChange={handlePageChange}
-                />
+      {/* Card view empty state */}
+      {view === "cards" && filteredSurgeries.length === 0 && !loading && (
+        <div className="flex-1 flex items-center justify-center min-h-[500px]">
+          <div className="text-center py-16 max-w-md mx-auto">
+            <Calendar className="mx-auto h-20 w-20 text-gray-400 mb-6" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              {searchTerm
+                ? "No surgeries match your search"
+                : filter === "ALL"
+                ? "No surgeries found"
+                : `No ${filter.toLowerCase()} surgeries`}
+            </h3>
+            <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+              {searchTerm
+                ? `Try adjusting your search terms or clearing filters to see more results.`
+                : filter === "ALL"
+                ? "Get started by scheduling your first surgery to begin managing your surgical calendar."
+                : `No ${filter.toLowerCase()} surgeries found. Try selecting a different filter or schedule a new surgery.`}
+            </p>
+            {!searchTerm && filter === "ALL" && (
+              <div className="space-y-4">
+                <Button
+                  onClick={onScheduleNew}
+                  className="bg-blue-600 hover:bg-blue-700 px-6 py-3"
+                >
+                  Schedule New Surgery
+                </Button>
+                <p className="text-xs text-gray-400">
+                  Start managing your surgical schedule efficiently
+                </p>
+              </div>
+            )}
+            {searchTerm && (
+              <Button
+                onClick={() => setSearchTerm("")}
+                variant="outline"
+                className="px-6 py-3"
+              >
+                Clear Search
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
@@ -867,7 +962,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
         onConfirm={confirmCancelSurgery}
         title="Cancel Surgery"
         message={
-          selectedSurgeryForAction 
+          selectedSurgeryForAction
             ? `Are you sure you want to cancel the ${selectedSurgeryForAction.type} surgery for ${selectedSurgeryForAction.patient.name}? This action cannot be undone.`
             : "Are you sure you want to cancel this surgery?"
         }
@@ -884,7 +979,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
         onConfirm={confirmCompleteSurgery}
         title="Mark Surgery as Completed"
         message={
-          selectedSurgeryForAction 
+          selectedSurgeryForAction
             ? `Are you sure you want to mark the ${selectedSurgeryForAction.type} surgery for ${selectedSurgeryForAction.patient.name} as completed?`
             : "Are you sure you want to mark this surgery as completed?"
         }
@@ -894,6 +989,5 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
         isLoading={isActionLoading}
       />
     </div>
-  )
+  );
 }
-
