@@ -142,25 +142,25 @@ export default function SurgeryTableView({
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full min-w-[800px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-4 py-3 text-left">
+              <th className="px-4 py-3 text-left min-w-[160px] w-[160px]">
                 <SortButton field="scheduledAt">Date & Time</SortButton>
               </th>
-              <th className="px-4 py-3 text-left">
+              <th className="px-4 py-3 text-left min-w-[180px] w-[180px]">
                 <SortButton field="type">Surgery Type</SortButton>
               </th>
-              <th className="px-4 py-3 text-left">
+              <th className="px-4 py-3 text-left min-w-[140px] w-[140px]">
                 <SortButton field="patient">Patient</SortButton>
               </th>
-              <th className="px-4 py-3 text-left">
+              <th className="px-4 py-3 text-left min-w-[140px] w-[140px]">
                 <SortButton field="surgeon">Surgeon</SortButton>
               </th>
-              <th className="px-4 py-3 text-left">
+              <th className="px-4 py-3 text-left min-w-[100px] w-[100px]">
                 <SortButton field="status">Status</SortButton>
               </th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="px-4 py-3 text-right min-w-[120px] w-[120px]">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -171,7 +171,7 @@ export default function SurgeryTableView({
               return (
                 <>
                   <tr key={surgery.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 min-w-[160px] w-[160px]">
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1 text-sm text-gray-600">
                           <Calendar className="w-4 h-4" />
@@ -188,10 +188,10 @@ export default function SurgeryTableView({
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 min-w-[180px] w-[180px]">
                       <div className="font-medium text-gray-900">{surgery.type}</div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 min-w-[140px] w-[140px]">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                           <User className="w-4 h-4 text-blue-600" />
@@ -202,7 +202,7 @@ export default function SurgeryTableView({
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 min-w-[140px] w-[140px]">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                           <UserCheck className="w-4 h-4 text-green-600" />
@@ -213,10 +213,10 @@ export default function SurgeryTableView({
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 min-w-[100px] w-[100px]">
                       <StatusBadge status={surgery.status} />
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right min-w-[120px] w-[120px]">
                       <div className="flex items-center gap-1 justify-end">
                         <Button
                           variant="outline"

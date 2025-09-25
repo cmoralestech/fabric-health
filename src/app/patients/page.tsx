@@ -65,7 +65,7 @@ export default function PatientsPage() {
   const { data: session, status } = useSession();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewType, setViewType] = useState<"cards" | "table">("table"); // Default to table view
+  const [viewType, setViewType] = useState<"cards" | "table">("cards"); // Default to cards view
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showScheduleSurgeryModal, setShowScheduleSurgeryModal] =
@@ -209,47 +209,40 @@ export default function PatientsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      {/* Enhanced Header Section */}
-      <div className="bg-white border-b border-gray-200/60 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <User className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Patient Directory
-                </h1>
-                <div className="flex items-center gap-4 mt-1">
-                  <p className="text-sm text-gray-600">
-                    {pagination.total} patient
-                    {pagination.total !== 1 ? "s" : ""} registered
-                  </p>
-                  <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                  <p className="text-sm text-gray-600">
-                    {patients.filter((p) => p.surgeryCount > 0).length} with
-                    surgeries
-                  </p>
-                </div>
+      <main className="flex-1 max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
+        <div className="space-y-6">
+          {/* Compact Professional Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-200">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold text-gray-900">Patient Directory</h1>
+              <div className="flex items-center gap-6 text-sm text-gray-500">
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  {pagination.total} Total
+                </span>
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  {patients.filter((p) => p.surgeryCount > 0).length} Active
+                </span>
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  {patients.reduce((sum, p) => sum + p.surgeryCount, 0)} Surgeries
+                </span>
               </div>
             </div>
-            <Button
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
-              onClick={() => setShowAddModal(true)}
-            >
-              <UserPlus className="w-4 h-4 mr-2" />
-              Add Patient
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={() => setShowAddModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Add Patient
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="space-y-6">
           {/* Enhanced Search Section */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
             <div className="p-4 sm:p-6">
@@ -369,11 +362,13 @@ export default function PatientsPage() {
               </div>
             </div>
           ) : viewType === "table" ? (
-            <PatientTableView
-              patients={patients}
-              onViewPatient={handleViewPatient}
-              onScheduleSurgery={handleScheduleSurgery}
-            />
+            <div className="w-full">
+              <PatientTableView
+                patients={patients}
+                onViewPatient={handleViewPatient}
+                onScheduleSurgery={handleScheduleSurgery}
+              />
+            </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {patients.map((patient) => {
@@ -459,9 +454,6 @@ export default function PatientsPage() {
                         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                                <Activity className="w-4 h-4 text-white" />
-                              </div>
                               <span className="text-sm font-semibold text-blue-900">
                                 Medical History
                               </span>

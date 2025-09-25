@@ -63,51 +63,35 @@ export default function PatientTableView({
   }, [patients]);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      {/* Scroll indicator */}
-      {hasScroll && (
-        <div className="bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-center text-blue-700">
-          <ArrowRight className="w-4 h-4 mr-2" />
-          <span className="text-sm">
-            Scroll horizontally to see all columns
-          </span>
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </div>
-      )}
-
-      {/* Horizontal scroll container with better scrollbar */}
-      <div
-        ref={scrollRef}
-        className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
-      >
-        <div className="min-w-full inline-block align-middle">
-          <table className="min-w-[760px] w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[800px]">
+            <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[160px]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[180px]">
                   Patient
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[80px]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
                   Age
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">
                   Date of Birth
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[140px]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[160px]">
                   Contact
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[80px]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
                   Surgeries
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[90px]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[110px]">
                   Added
                 </th>
-                <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[130px]">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200">
               {patients.map((patient) => {
                 const ageCategory = getAgeCategory(patient.age);
                 const birthYear = new Date(patient.birthDate).getFullYear();
@@ -118,7 +102,7 @@ export default function PatientTableView({
                     className="hover:bg-gray-50 transition-colors"
                   >
                     {/* Patient Info */}
-                    <td className="px-3 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-7 h-7 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                           <User className="w-3 h-3 text-white" />
@@ -152,7 +136,7 @@ export default function PatientTableView({
                     </td>
 
                     {/* Date of Birth */}
-                    <td className="px-3 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {new Date(patient.birthDate).toLocaleDateString(
                           "en-US",
@@ -200,7 +184,7 @@ export default function PatientTableView({
                     </td>
 
                     {/* Added Date */}
-                    <td className="px-3 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="text-xs text-gray-500">
                         {new Date(patient.createdAt).toLocaleDateString(
                           "en-US",
@@ -239,8 +223,7 @@ export default function PatientTableView({
                 );
               })}
             </tbody>
-          </table>
-        </div>
+        </table>
       </div>
 
       {/* Empty state for table */}

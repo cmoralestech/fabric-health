@@ -1,4 +1,5 @@
 @import "tailwindcss";
+/* Force cache refresh - Updated filters v3 */
 
 :root {
   --background: #ffffff;
