@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, getSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,10 +32,17 @@ export default function SignIn() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
   });
+
+  const fillCredentials = (email: string, password: string) => {
+    setValue("email", email);
+    setValue("password", password);
+    setError(""); // Clear any previous errors
+  };
 
   const onSubmit = async (data: LoginData) => {
     setIsSubmitting(true);
@@ -209,7 +216,13 @@ export default function SignIn() {
             📝 Demo Credentials for Testing:
           </h3>
           <div className="grid grid-cols-1 gap-3">
-            <div className="bg-white p-3 rounded border border-blue-200 flex justify-between items-center">
+            <button
+              type="button"
+              onClick={() =>
+                fillCredentials("admin@hospital.com", "password123")
+              }
+              className="bg-white p-3 rounded border border-blue-200 flex justify-between items-center hover:bg-blue-50 hover:border-blue-300 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
               <div>
                 <div className="font-medium text-blue-900 text-sm">
                   Administrator
@@ -224,8 +237,14 @@ export default function SignIn() {
                   password123
                 </div>
               </div>
-            </div>
-            <div className="bg-white p-3 rounded border border-blue-200 flex justify-between items-center">
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                fillCredentials("surgeon@hospital.com", "password123")
+              }
+              className="bg-white p-3 rounded border border-blue-200 flex justify-between items-center hover:bg-blue-50 hover:border-blue-300 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
               <div>
                 <div className="font-medium text-blue-900 text-sm">Surgeon</div>
                 <div className="text-blue-700 text-xs">
@@ -240,8 +259,14 @@ export default function SignIn() {
                   password123
                 </div>
               </div>
-            </div>
-            <div className="bg-white p-3 rounded border border-blue-200 flex justify-between items-center">
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                fillCredentials("staff@hospital.com", "password123")
+              }
+              className="bg-white p-3 rounded border border-blue-200 flex justify-between items-center hover:bg-blue-50 hover:border-blue-300 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
               <div>
                 <div className="font-medium text-blue-900 text-sm">Staff</div>
                 <div className="text-blue-700 text-xs">Healthcare support</div>
@@ -254,7 +279,7 @@ export default function SignIn() {
                   password123
                 </div>
               </div>
-            </div>
+            </button>
           </div>
           <p className="text-xs text-blue-600 mt-4 text-center">
             💡 Click on any credential above to quickly test the system
