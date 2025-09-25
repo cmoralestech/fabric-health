@@ -79,17 +79,18 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
   const [view, setView] = useState<'cards' | 'table'>('cards')
   const [selectedSurgeries, setSelectedSurgeries] = useState<Set<string>>(new Set())
   const [showBulkActions, setShowBulkActions] = useState(false)
-  
+  let filteredSurgeries: Surgery[] = [];
+
   // Pagination state
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 20,
+    limit: 10,
     total: 0,
     totalPages: 0,
     hasNext: false,
     hasPrev: false
   })
-  
+
   // Confirmation modal states
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [showCompleteModal, setShowCompleteModal] = useState(false)
@@ -169,7 +170,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
           body: JSON.stringify({ status: newStatus })
         })
       )
-      
+
       await Promise.all(promises)
       fetchSurgeries()
       clearSelection()
@@ -190,7 +191,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
         page: page.toString(),
         limit: pagination.limit.toString()
       })
-      
+
       const response = await fetch(`/api/surgeries?${params}`)
       if (response.ok) {
         const data = await response.json()
@@ -205,7 +206,8 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
   }
 
   const handlePageChange = (page: number) => {
-    fetchSurgeries(page)
+    // fetchSurgeries(page)
+    setPagination((prev) => ({ ...prev, page }))
   }
 
   const resetAllFilters = () => {
@@ -217,9 +219,29 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
     setShowAdvancedFilters(false)
   }
 
+  /* useEffect(() => {
+    fetchSurgeries(1) // Reset to page 1 when filter changes
+  }, [filter]) */
+
+  useEffect(() => {
+    const totalItems = filteredSurgeries.filter(surgery => filter === 'ALL' ? true : surgery.status === filter).length;
+    const limit = 10;
+    const page = 1;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    setPagination({
+      page,
+      limit,
+      total: totalItems,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    });
+  }, [filter]);
+
   useEffect(() => {
     fetchSurgeries(1) // Reset to page 1 when filter changes
-  }, [filter])
+  }, [])
 
   // Reset pagination when advanced filters change
   useEffect(() => {
@@ -241,7 +263,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
       const response = await fetch(`/api/surgeries/${selectedSurgeryForAction.id}`, {
         method: 'DELETE'
       })
-      
+
       if (response.ok) {
         fetchSurgeries() // Refresh the list
         setShowCancelModal(false)
@@ -271,7 +293,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
         },
         body: JSON.stringify({ status: 'COMPLETED' }),
       })
-      
+
       if (response.ok) {
         fetchSurgeries() // Refresh the list
         setShowCompleteModal(false)
@@ -287,14 +309,14 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
   const filters = ['ALL', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'POSTPONED']
 
   // Enhanced filtering with date, type, surgeon, and search criteria
-  const filteredSurgeries = surgeries.filter(surgery => {
+  filteredSurgeries = surgeries.filter(surgery => {
     // Date filter
     if (dateFilter !== 'ALL') {
       const surgeryDate = new Date(surgery.scheduledAt)
       const today = new Date()
       const tomorrow = new Date(today)
       tomorrow.setDate(today.getDate() + 1)
-      
+
       switch (dateFilter) {
         case 'TODAY':
           if (surgeryDate.toDateString() !== today.toDateString()) return false
@@ -321,7 +343,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
           break
       }
     }
-    
+
     // Type filter (categorize surgeries by type)
     if (typeFilter !== 'ALL') {
       const surgeryType = surgery.type.toLowerCase()
@@ -343,10 +365,10 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
           break
       }
     }
-    
+
     // Surgeon filter
     if (surgeonFilter !== 'ALL' && surgery.surgeon.name !== surgeonFilter) return false
-    
+
     // Search term filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
@@ -400,8 +422,8 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            onClick={onScheduleNew} 
+          <Button
+            onClick={onScheduleNew}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -426,7 +448,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
               />
             </div>
           </div>
-          
+
           {/* Filter Controls */}
           <div className="flex items-center gap-3">
             <Button
@@ -438,7 +460,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
               <Filter className="w-4 h-4 mr-2" />
               Filters
             </Button>
-            
+
             {(dateFilter !== 'ALL' || typeFilter !== 'ALL' || surgeonFilter !== 'ALL' || searchTerm) && (
               <Button
                 onClick={resetAllFilters}
@@ -450,14 +472,14 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                 Clear Filters
               </Button>
             )}
-            
-            <ExportSurgeriesButton 
-              surgeries={filteredSurgeries} 
+
+            <ExportSurgeriesButton
+              surgeries={filteredSurgeries}
               selectedSurgeries={selectedSurgeries}
             />
-            
+
             <ViewToggle view={view} onViewChange={setView} />
-            
+
             {filteredSurgeries.length > 0 && (
               <Button
                 onClick={selectedSurgeries.size === filteredSurgeries.length ? clearSelection : selectAllSurgeries}
@@ -469,7 +491,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                 {selectedSurgeries.size === filteredSurgeries.length ? 'Deselect All' : 'Select All'}
               </Button>
             )}
-            
+
             {selectedSurgeries.size > 0 && (
               <Button
                 onClick={() => setShowBulkActions(!showBulkActions)}
@@ -494,7 +516,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                 <select
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                 >
                   <option value="ALL">All Dates</option>
                   <option value="TODAY">Today</option>
@@ -504,14 +526,14 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                   <option value="PAST">Past Surgeries</option>
                 </select>
               </div>
-              
+
               {/* Surgery Type Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Surgery Type</label>
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                 >
                   <option value="ALL">All Types</option>
                   <option value="EMERGENCY">Emergency</option>
@@ -521,14 +543,14 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                   <option value="SPECIALTY">Specialty</option>
                 </select>
               </div>
-              
+
               {/* Surgeon Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Surgeon</label>
                 <select
                   value={surgeonFilter}
                   onChange={(e) => setSurgeonFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                 >
                   <option value="ALL">All Surgeons</option>
                   <option value="Dr. Sarah Admin">Dr. Sarah Admin</option>
@@ -591,24 +613,23 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
       {/* Compact Filters */}
       <div className="flex flex-wrap gap-2 items-center">
         {filters.map((status) => {
-          const count = status === 'ALL' ? pagination.total : surgeries.filter(s => s.status === status).length
+          // const count = status === 'ALL' ? pagination.total : filteredSurgeries.filter(s => s.status === status).length
+          const count = status === 'ALL' ? filteredSurgeries.length : filteredSurgeries.filter(s => s.status === status).length
           return (
             <Button
               key={status}
               variant={filter === status ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setFilter(status)}
-              className={`text-xs ${
-                filter === status 
-                  ? 'bg-blue-600 text-white border-blue-600' 
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
+              className={`text-xs ${filter === status
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
             >
               {status === 'ALL' ? 'All' : status.replace('_', ' ')}
               {count > 0 && (
-                <span className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${
-                  filter === status ? 'bg-white/20' : 'bg-gray-100 text-gray-600'
-                }`}>
+                <span className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${filter === status ? 'bg-white/20' : 'bg-gray-100 text-gray-600'
+                  }`}>
                   {count}
                 </span>
               )}
@@ -620,20 +641,19 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
       {/* Enterprise Surgery Content - Cards or Table View */}
       {view === 'cards' ? (
         <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3 min-h-[400px]">
-          {filteredSurgeries.map((surgery) => {
+          {filteredSurgeries.filter(surgery => filter === 'ALL' ? true : surgery.status === filter).slice((pagination.page - 1) * pagination.limit, pagination.page * pagination.limit).map((surgery) => {
             const isUpcoming = new Date(surgery.scheduledAt) > new Date()
             const isToday = new Date(surgery.scheduledAt).toDateString() === new Date().toDateString()
             const isEmergency = surgery.type.toLowerCase().includes('emergency')
             const isUrgent = surgery.status === 'IN_PROGRESS'
-            
+
             return (
-              <Card key={surgery.id} className={`group hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 border overflow-hidden ${
-                isEmergency ? 'border-red-300 bg-red-50/30' : 
+              <Card key={surgery.id} className={`group hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 border overflow-hidden ${isEmergency ? 'border-red-300 bg-red-50/30' :
                 isUrgent ? 'border-orange-300 bg-orange-50/30' :
-                isToday ? 'border-blue-300 bg-blue-50/30' : 
-                'border-gray-200 hover:border-gray-300'
-              }`}>
-                
+                  isToday ? 'border-blue-300 bg-blue-50/30' :
+                    'border-gray-200 hover:border-gray-300'
+                }`}>
+
                 {/* Enhanced Header with Priority and Selection */}
                 <CardHeader className="pb-3 relative">
                   <div className="flex justify-between items-start">
@@ -646,7 +666,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                         className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                       />
                     </div>
-                    
+
                     <div className="space-y-2 flex-1 ml-6">
                       {/* Priority Badge */}
                       <div className="flex items-center gap-2">
@@ -660,11 +680,11 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                           </span>
                         )}
                       </div>
-                      
+
                       <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-blue-700 transition-colors">
                         {surgery.type}
                       </CardTitle>
-                      
+
                       {/* Date, Time, and OR */}
                       <div className="flex items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
@@ -685,7 +705,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col items-end gap-2">
                       <StatusBadge status={surgery.status} />
                       {surgery.estimatedDuration && (
@@ -696,7 +716,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                     </div>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-4">
                   {/* Patient Information */}
                   <div className="bg-blue-50 rounded-lg p-3">
@@ -724,7 +744,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                           <p className="text-xs text-gray-500">Lead Surgeon</p>
                         </div>
                       </div>
-                      
+
                       {surgery.assistantSurgeon && (
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
@@ -736,7 +756,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                           </div>
                         </div>
                       )}
-                      
+
                       {surgery.anesthesiologist && (
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
@@ -790,7 +810,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                       <Edit className="w-3 h-3 mr-1" />
                       Edit
                     </Button>
-                    
+
                     {surgery.status === 'SCHEDULED' && (
                       <Button
                         variant="outline"
@@ -802,7 +822,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
                         Complete
                       </Button>
                     )}
-                    
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -820,7 +840,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
         </div>
       ) : (
         <SurgeryTableView
-          surgeries={filteredSurgeries}
+          surgeries={filteredSurgeries.filter(surgery => filter === 'ALL' ? true : surgery.status === filter).slice((pagination.page - 1) * pagination.limit, pagination.page * pagination.limit)}
           onEditSurgery={onEditSurgery}
           onCancelSurgery={handleCancelSurgery}
           onCompleteSurgery={handleCompleteSurgery}
@@ -834,10 +854,10 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
             {searchTerm ? 'No surgeries match your search' : 'No surgeries found'}
           </h3>
           <p className="mt-1 text-sm text-gray-500">
-            {searchTerm 
-              ? `Try adjusting your search terms.` 
-              : filter === 'ALL' 
-                ? 'Get started by scheduling a new surgery.' 
+            {searchTerm
+              ? `Try adjusting your search terms.`
+              : filter === 'ALL'
+                ? 'Get started by scheduling a new surgery.'
                 : `No ${filter.toLowerCase()} surgeries.`
             }
           </p>
@@ -852,11 +872,11 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
       {/* Pagination */}
       {!loading && surgeries.length > 0 && pagination.totalPages > 1 && (
         <div className="mt-6 flex justify-center">
-                <Pagination
-                  currentPage={pagination.page}
-                  totalPages={pagination.totalPages}
-                  onPageChange={handlePageChange}
-                />
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       )}
 
@@ -867,7 +887,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
         onConfirm={confirmCancelSurgery}
         title="Cancel Surgery"
         message={
-          selectedSurgeryForAction 
+          selectedSurgeryForAction
             ? `Are you sure you want to cancel the ${selectedSurgeryForAction.type} surgery for ${selectedSurgeryForAction.patient.name}? This action cannot be undone.`
             : "Are you sure you want to cancel this surgery?"
         }
@@ -884,7 +904,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
         onConfirm={confirmCompleteSurgery}
         title="Mark Surgery as Completed"
         message={
-          selectedSurgeryForAction 
+          selectedSurgeryForAction
             ? `Are you sure you want to mark the ${selectedSurgeryForAction.type} surgery for ${selectedSurgeryForAction.patient.name} as completed?`
             : "Are you sure you want to mark this surgery as completed?"
         }

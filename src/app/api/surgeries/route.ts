@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     // Use raw query to avoid relationship issues with corrupted data
     const surgeries = await prisma.surgery.findMany({
-      where,
+      // where,
       select: {
         id: true,
         scheduledAt: true,
@@ -78,10 +78,10 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { scheduledAt: 'asc' },
       skip,
-      take: limit
+      // take: limit
     })
 
-    const total = await prisma.surgery.count({ where })
+    const total = await prisma.surgery.count()
 
     return NextResponse.json({
       surgeries,
