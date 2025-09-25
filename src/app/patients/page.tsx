@@ -209,7 +209,7 @@ export default function PatientsPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-200px)]">
         <div className="space-y-6">
           {/* Compact Professional Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-200">
@@ -243,15 +243,13 @@ export default function PatientsPage() {
               </Button>
             </div>
           </div>
-          {/* Enhanced Search Section */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-            <div className="p-4 sm:p-6">
-              <AdvancedPatientSearch
-                onSearch={handleSearch}
-                isLoading={loading}
-                totalResults={pagination.total}
-              />
-            </div>
+          {/* Search Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-4">
+            <AdvancedPatientSearch
+              onSearch={handleSearch}
+              isLoading={loading}
+              totalResults={pagination.total}
+            />
           </div>
 
           {/* Enhanced Results Header */}
@@ -362,15 +360,13 @@ export default function PatientsPage() {
               </div>
             </div>
           ) : viewType === "table" ? (
-            <div className="w-full">
-              <PatientTableView
-                patients={patients}
-                onViewPatient={handleViewPatient}
-                onScheduleSurgery={handleScheduleSurgery}
-              />
-            </div>
+            <PatientTableView
+              patients={patients}
+              onViewPatient={handleViewPatient}
+              onScheduleSurgery={handleScheduleSurgery}
+            />
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
               {patients.map((patient) => {
                 const ageCategory = getAgeCategory(patient.age);
                 const birthYear = new Date(patient.birthDate).getFullYear();
@@ -505,9 +501,9 @@ export default function PatientsPage() {
             </div>
           )}
 
-          {/* Enhanced Empty State */}
+          {/* Empty State */}
           {patients.length === 0 && !loading && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 p-12 text-center">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-12 text-center">
               <div className="w-24 h-24 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <User className="w-12 h-12 text-blue-600" />
               </div>
@@ -570,9 +566,9 @@ export default function PatientsPage() {
             </div>
           )}
 
-          {/* Enhanced Pagination */}
+          {/* Pagination */}
           {patients.length > 0 && pagination.totalPages > 1 && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="text-sm text-gray-600">
                   Showing{" "}
