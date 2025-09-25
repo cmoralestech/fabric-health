@@ -432,18 +432,50 @@ export default function ExportSurgeriesButton({
             </CardHeader>
 
             <CardContent className="space-y-6">
-              {/* Security Warning */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-start space-x-3">
-                  <Shield className="w-5 h-5 text-yellow-600 mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-semibold text-yellow-800">
-                      PHI Security Notice
-                    </h4>
-                    <p className="text-xs text-yellow-700 mt-1">
-                      This export contains Protected Health Information (PHI).
-                      All downloads are logged for HIPAA compliance.
-                    </p>
+              {/* Comprehensive Security Warnings */}
+              <div className="space-y-3">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="text-sm font-semibold text-red-800 mb-2">
+                        ⚠️ HIPAA Protected Health Information
+                      </h4>
+                      <ul className="text-xs text-red-700 space-y-1">
+                        <li>
+                          • Downloaded files contain PHI and must be handled
+                          according to HIPAA requirements
+                        </li>
+                        <li>
+                          • You are responsible for secure storage and disposal
+                          of downloaded files
+                        </li>
+                        <li>
+                          • Sharing exported data without authorization is
+                          strictly prohibited
+                        </li>
+                        <li>
+                          • Delete files when no longer needed for authorized
+                          purposes
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-start space-x-2">
+                    <Shield className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="text-sm font-semibold text-blue-800">
+                        Security & Compliance
+                      </h4>
+                      <p className="text-xs text-blue-700 mt-1">
+                        All export activities are monitored and logged for audit
+                        purposes. Export tokens expire in 5 minutes for
+                        security.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

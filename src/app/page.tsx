@@ -1,33 +1,34 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Button } from '@/components/ui/Button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Calendar, Shield, Users, Clock } from 'lucide-react'
+import { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { FullFooter } from "@/components/layout/Footer";
+import { Calendar, Shield, Users, Clock } from "lucide-react";
 
 export default function Home() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      router.push('/dashboard')
+    if (status === "authenticated") {
+      router.push("/dashboard");
     }
-  }, [status, router])
+  }, [status, router]);
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
-    )
+    );
   }
 
-  if (status === 'authenticated') {
-    return null // Will redirect
+  if (status === "authenticated") {
+    return null; // Will redirect
   }
 
   return (
@@ -37,7 +38,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-blue-600">SurgeryManager</h1>
+              <h1 className="text-2xl font-bold text-blue-600">
+                SurgeryManager
+              </h1>
             </div>
             <div className="flex space-x-4">
               <Link href="/auth/signin">
@@ -59,7 +62,8 @@ export default function Home() {
             <span className="block text-blue-600">Made Simple</span>
           </h1>
           <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-            Streamline your healthcare operations with our secure, intuitive surgery scheduling and management system.
+            Streamline your healthcare operations with our secure, intuitive
+            surgery scheduling and management system.
           </p>
           <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
             <div className="rounded-md shadow">
@@ -98,7 +102,8 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Easily schedule new surgeries with comprehensive patient and surgeon information.
+                  Easily schedule new surgeries with comprehensive patient and
+                  surgeon information.
                 </p>
               </CardContent>
             </Card>
@@ -110,7 +115,8 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Keep track of patient information including age, birth date, and contact details.
+                  Keep track of patient information including age, birth date,
+                  and contact details.
                 </p>
               </CardContent>
             </Card>
@@ -122,7 +128,8 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Track surgery status from scheduled to completed with real-time updates.
+                  Track surgery status from scheduled to completed with
+                  real-time updates.
                 </p>
               </CardContent>
             </Card>
@@ -134,7 +141,8 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Built with healthcare security standards and data protection in mind.
+                  Built with healthcare security standards and data protection
+                  in mind.
                 </p>
               </CardContent>
             </Card>
@@ -171,16 +179,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t">
-        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-gray-500">
-              &copy; 2024 SurgeryManager. Built for healthcare professionals.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <FullFooter />
     </div>
-  )
+  );
 }
