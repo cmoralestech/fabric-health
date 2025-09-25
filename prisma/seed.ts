@@ -338,6 +338,46 @@ async function main() {
       }
     )
 
+    // Some postponed surgeries
+    surgeryData.push(
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2, 10, 0),
+        type: 'Cardiac Catheterization',
+        status: 'POSTPONED',
+        notes: 'Surgery postponed due to equipment maintenance, will be rescheduled next week',
+        patientId: patients[1].id,
+        surgeonId: surgeon2.id,
+        scheduledById: admin.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3, 14, 30),
+        type: 'Liver Biopsy',
+        status: 'POSTPONED',
+        notes: 'Patient needs additional pre-operative clearance from cardiologist',
+        patientId: patients[2].id,
+        surgeonId: surgeon.id,
+        scheduledById: staff.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 9, 0),
+        type: 'Dental Surgery',
+        status: 'POSTPONED',
+        notes: 'Postponed due to surgeon availability conflict, patient will be contacted for new date',
+        patientId: patients[3].id,
+        surgeonId: surgeon3.id,
+        scheduledById: staff.id
+      },
+      {
+        scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 11, 0),
+        type: 'Skin Graft',
+        status: 'POSTPONED',
+        notes: 'Weather-related postponement - patient unable to travel due to storm',
+        patientId: patients[4].id,
+        surgeonId: admin.id,
+        scheduledById: admin.id
+      }
+    )
+
     // Add more surgeries for pagination testing (next week and beyond)
     for (let i = 5; i < 15; i++) {
       surgeryData.push(
@@ -355,7 +395,7 @@ async function main() {
             'Follow-up Visit',
             'Biopsy Procedure'
           ][i % 10],
-          status: ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED'][i % 3] as any,
+          status: ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'POSTPONED'][i % 4] as any,
           notes: `Routine medical procedure scheduled for ${['follow-up', 'diagnostic', 'therapeutic'][i % 3]} purposes`,
           patientId: patients[i % patients.length].id,
           surgeonId: [surgeon.id, surgeon2.id, surgeon3.id, admin.id][i % 4],

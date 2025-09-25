@@ -155,54 +155,49 @@ export default function AdvancedPatientSearch({
 
       {/* Advanced Filters */}
       {showAdvanced && (
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Filter className="w-5 h-5" />
-              Advanced Search Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Age Range */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <Hash className="w-4 h-4" />
+        <Card className="border-gray-200 bg-gray-50/30">
+          <CardContent className="p-4">
+            {/* Compact filter grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+              {/* Age Range - Compact */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block flex items-center gap-1">
+                  <Hash className="w-3 h-3" />
                   Age Range
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-1">
                   <Input
                     type="number"
                     placeholder="Min"
                     value={filters.ageMin}
                     onChange={(e) => handleFilterChange('ageMin', e.target.value)}
-                    className="flex-1"
+                    className="h-8 text-sm flex-1"
                     min="0"
                     max="150"
                   />
-                  <span className="flex items-center text-gray-500">to</span>
+                  <span className="text-xs text-gray-400 flex items-center">to</span>
                   <Input
                     type="number"
                     placeholder="Max"
                     value={filters.ageMax}
                     onChange={(e) => handleFilterChange('ageMax', e.target.value)}
-                    className="flex-1"
+                    className="h-8 text-sm flex-1"
                     min="0"
                     max="150"
                   />
                 </div>
               </div>
 
-              {/* Birth Year */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
+              {/* Birth Year - Compact */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
                   Birth Year
                 </label>
                 <select
                   value={filters.birthYear}
                   onChange={(e) => handleFilterChange('birthYear', e.target.value)}
-                  className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full h-8 rounded-md border border-gray-300 bg-white px-2 text-sm focus:border-blue-500 focus:outline-none"
                 >
                   <option value="">Any year</option>
                   {yearOptions.map(year => (
@@ -212,33 +207,30 @@ export default function AdvancedPatientSearch({
                   ))}
                 </select>
               </div>
-            </div>
 
-            {/* Second row for DOB search */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Exact Date of Birth */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
+              {/* Exact Date of Birth - Compact */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
                   Exact Date of Birth
                 </label>
                 <Input
                   type="date"
                   value={filters.birthDate}
                   onChange={(e) => handleFilterChange('birthDate', e.target.value)}
-                  className="w-full"
+                  className="h-8 text-sm"
                 />
               </div>
 
-              {/* Search Actions */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+              {/* Actions - Compact */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">
                   Actions
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-1">
                   <Button
                     onClick={handleAdvancedSearch}
-                    className="flex-1"
+                    className="h-8 px-3 text-sm flex-1"
                     isLoading={isLoading}
                   >
                     Search
@@ -246,18 +238,18 @@ export default function AdvancedPatientSearch({
                   <Button
                     variant="outline"
                     onClick={clearFilters}
-                    className="px-3"
+                    className="h-8 px-2"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3 h-3" />
                   </Button>
                 </div>
               </div>
             </div>
 
-            {/* Common Search Shortcuts */}
-            <div className="border-t border-blue-200 pt-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">Quick Filters:</p>
-              <div className="flex flex-wrap gap-2">
+            {/* Quick Filters - More compact */}
+            <div className="border-t border-gray-200 pt-3">
+              <p className="text-xs font-medium text-gray-600 mb-2">Quick Filters:</p>
+              <div className="flex flex-wrap gap-1">
                 <Button
                   variant="outline"
                   size="sm"
@@ -266,7 +258,7 @@ export default function AdvancedPatientSearch({
                     setFilters(newFilters)
                     onSearch(newFilters)
                   }}
-                  className="text-xs"
+                  className="h-6 px-2 text-xs"
                 >
                   Pediatric (0-17)
                 </Button>
@@ -278,7 +270,7 @@ export default function AdvancedPatientSearch({
                     setFilters(newFilters)
                     onSearch(newFilters)
                   }}
-                  className="text-xs"
+                  className="h-6 px-2 text-xs"
                 >
                   Adult (18-64)
                 </Button>
@@ -290,7 +282,7 @@ export default function AdvancedPatientSearch({
                     setFilters(newFilters)
                     onSearch(newFilters)
                   }}
-                  className="text-xs"
+                  className="h-6 px-2 text-xs"
                 >
                   Senior (65+)
                 </Button>
@@ -302,7 +294,7 @@ export default function AdvancedPatientSearch({
                     setFilters(newFilters)
                     onSearch(newFilters)
                   }}
-                  className="text-xs"
+                  className="h-6 px-2 text-xs"
                 >
                   Recently Added
                 </Button>

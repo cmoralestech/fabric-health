@@ -65,19 +65,14 @@ const filterOptions = [
   { value: 'POSTPONED', label: 'Postponed', count: 0 }
 ]
 
-const priorityOptions = [
-  { value: 'ALL', label: 'All Priorities', count: 0 },
-  { value: 'EMERGENCY', label: 'Emergency', count: 0 },
-  { value: 'URGENT', label: 'Urgent', count: 0 },
-  { value: 'ROUTINE', label: 'Routine', count: 0 },
-  { value: 'ELECTIVE', label: 'Elective', count: 0 }
-]
 
 export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryListProps) {
   const [surgeries, setSurgeries] = useState<Surgery[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('ALL')
-  const [priorityFilter, setPriorityFilter] = useState('ALL')
+  const [dateFilter, setDateFilter] = useState('ALL')
+  const [typeFilter, setTypeFilter] = useState('ALL')
+  const [surgeonFilter, setSurgeonFilter] = useState('ALL')
   const [searchTerm, setSearchTerm] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
@@ -213,9 +208,25 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
     fetchSurgeries(page)
   }
 
+  const resetAllFilters = () => {
+    setFilter('ALL')
+    setDateFilter('ALL')
+    setTypeFilter('ALL')
+    setSurgeonFilter('ALL')
+    setSearchTerm('')
+    setShowAdvancedFilters(false)
+  }
+
   useEffect(() => {
     fetchSurgeries(1) // Reset to page 1 when filter changes
   }, [filter])
+
+  // Reset pagination when advanced filters change
+  useEffect(() => {
+    if (dateFilter !== 'ALL' || typeFilter !== 'ALL' || surgeonFilter !== 'ALL') {
+      fetchSurgeries(1)
+    }
+  }, [dateFilter, typeFilter, surgeonFilter])
 
   const handleCancelSurgery = (surgery: Surgery) => {
     setSelectedSurgeryForAction(surgery)
@@ -275,8 +286,67 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
 
   const filters = ['ALL', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'POSTPONED']
 
-  // Enhanced filtering with priority, search, and other criteria
+  // Enhanced filtering with date, type, surgeon, and search criteria
   const filteredSurgeries = surgeries.filter(surgery => {
+    // Date filter
+    if (dateFilter !== 'ALL') {
+      const surgeryDate = new Date(surgery.scheduledAt)
+      const today = new Date()
+      const tomorrow = new Date(today)
+      tomorrow.setDate(today.getDate() + 1)
+      
+      switch (dateFilter) {
+        case 'TODAY':
+          if (surgeryDate.toDateString() !== today.toDateString()) return false
+          break
+        case 'TOMORROW':
+          if (surgeryDate.toDateString() !== tomorrow.toDateString()) return false
+          break
+        case 'THIS_WEEK':
+          const weekStart = new Date(today)
+          weekStart.setDate(today.getDate() - today.getDay())
+          const weekEnd = new Date(weekStart)
+          weekEnd.setDate(weekStart.getDate() + 6)
+          if (surgeryDate < weekStart || surgeryDate > weekEnd) return false
+          break
+        case 'NEXT_WEEK':
+          const nextWeekStart = new Date(today)
+          nextWeekStart.setDate(today.getDate() + (7 - today.getDay()))
+          const nextWeekEnd = new Date(nextWeekStart)
+          nextWeekEnd.setDate(nextWeekStart.getDate() + 6)
+          if (surgeryDate < nextWeekStart || surgeryDate > nextWeekEnd) return false
+          break
+        case 'PAST':
+          if (surgeryDate >= today) return false
+          break
+      }
+    }
+    
+    // Type filter (categorize surgeries by type)
+    if (typeFilter !== 'ALL') {
+      const surgeryType = surgery.type.toLowerCase()
+      switch (typeFilter) {
+        case 'EMERGENCY':
+          if (!surgeryType.includes('emergency') && !surgeryType.includes('appendectomy')) return false
+          break
+        case 'CARDIAC':
+          if (!surgeryType.includes('cardiac') && !surgeryType.includes('bypass') && !surgeryType.includes('heart')) return false
+          break
+        case 'ORTHOPEDIC':
+          if (!surgeryType.includes('knee') && !surgeryType.includes('hip') && !surgeryType.includes('shoulder') && !surgeryType.includes('spinal') && !surgeryType.includes('arthroscopy')) return false
+          break
+        case 'GENERAL':
+          if (!surgeryType.includes('gallbladder') && !surgeryType.includes('hernia') && !surgeryType.includes('appendectomy') && !surgeryType.includes('colonoscopy') && !surgeryType.includes('endoscopy')) return false
+          break
+        case 'SPECIALTY':
+          if (!surgeryType.includes('cataract') && !surgeryType.includes('brain') && !surgeryType.includes('lung') && !surgeryType.includes('prostate') && !surgeryType.includes('thyroid')) return false
+          break
+      }
+    }
+    
+    // Surgeon filter
+    if (surgeonFilter !== 'ALL' && surgery.surgeon.name !== surgeonFilter) return false
+    
     // Search term filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
@@ -288,11 +358,6 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
         surgery.notes?.toLowerCase().includes(searchLower)
       )
       if (!matchesSearch) return false
-    }
-
-    // Priority filter
-    if (priorityFilter !== 'ALL' && surgery.priority !== priorityFilter) {
-      return false
     }
 
     return true
@@ -330,7 +395,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
             </span>
             <span className="flex items-center gap-1">
               <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              {filteredSurgeries.filter(s => s.priority === 'EMERGENCY').length} Emergency
+              {filteredSurgeries.filter(s => s.status === 'CANCELLED').length} Cancelled
             </span>
           </div>
         </div>
@@ -374,6 +439,18 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
               Filters
             </Button>
             
+            {(dateFilter !== 'ALL' || typeFilter !== 'ALL' || surgeonFilter !== 'ALL' || searchTerm) && (
+              <Button
+                onClick={resetAllFilters}
+                variant="outline"
+                size="sm"
+                className="text-gray-600 hover:bg-gray-50"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Clear Filters
+              </Button>
+            )}
+            
             <ExportSurgeriesButton 
               surgeries={filteredSurgeries} 
               selectedSurgeries={selectedSurgeries}
@@ -407,41 +484,58 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
           </div>
         </div>
 
-        {/* Advanced Filters Panel */}
+        {/* Advanced Filters Panel - Updated with new intuitive filters */}
         {showAdvancedFilters && (
           <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Priority Filter */}
+              {/* Date Range Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Priority Level</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
                 <select
-                  value={priorityFilter}
-                  onChange={(e) => setPriorityFilter(e.target.value)}
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  {priorityOptions.map(option => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
+                  <option value="ALL">All Dates</option>
+                  <option value="TODAY">Today</option>
+                  <option value="TOMORROW">Tomorrow</option>
+                  <option value="THIS_WEEK">This Week</option>
+                  <option value="NEXT_WEEK">Next Week</option>
+                  <option value="PAST">Past Surgeries</option>
                 </select>
               </div>
               
-              {/* Additional filters can be added here */}
+              {/* Surgery Type Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Operating Room</label>
-                <input
-                  type="text"
-                  placeholder="Filter by OR..."
+                <label className="block text-sm font-medium text-gray-700 mb-2">Surgery Type</label>
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                >
+                  <option value="ALL">All Types</option>
+                  <option value="EMERGENCY">Emergency</option>
+                  <option value="CARDIAC">Cardiac</option>
+                  <option value="ORTHOPEDIC">Orthopedic</option>
+                  <option value="GENERAL">General Surgery</option>
+                  <option value="SPECIALTY">Specialty</option>
+                </select>
               </div>
               
+              {/* Surgeon Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Surgeon</label>
-                <input
-                  type="text"
-                  placeholder="Filter by surgeon..."
+                <select
+                  value={surgeonFilter}
+                  onChange={(e) => setSurgeonFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                >
+                  <option value="ALL">All Surgeons</option>
+                  <option value="Dr. Sarah Admin">Dr. Sarah Admin</option>
+                  <option value="Dr. John Surgeon">Dr. John Surgeon</option>
+                  <option value="Dr. Jennifer Smith">Dr. Jennifer Smith</option>
+                  <option value="Dr. Michael Jones">Dr. Michael Jones</option>
+                </select>
               </div>
             </div>
           </div>
@@ -525,12 +619,12 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
 
       {/* Enterprise Surgery Content - Cards or Table View */}
       {view === 'cards' ? (
-        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3 min-h-[400px]">
           {filteredSurgeries.map((surgery) => {
             const isUpcoming = new Date(surgery.scheduledAt) > new Date()
             const isToday = new Date(surgery.scheduledAt).toDateString() === new Date().toDateString()
-            const isEmergency = surgery.priority === 'EMERGENCY'
-            const isUrgent = surgery.priority === 'URGENT'
+            const isEmergency = surgery.type.toLowerCase().includes('emergency')
+            const isUrgent = surgery.status === 'IN_PROGRESS'
             
             return (
               <Card key={surgery.id} className={`group hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 border overflow-hidden ${
@@ -758,12 +852,11 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
       {/* Pagination */}
       {!loading && surgeries.length > 0 && pagination.totalPages > 1 && (
         <div className="mt-6 flex justify-center">
-          <Pagination
-            currentPage={pagination.page}
-            totalPages={pagination.totalPages}
-            onPageChange={handlePageChange}
-            showPageNumbers={true}
-          />
+                <Pagination
+                  currentPage={pagination.page}
+                  totalPages={pagination.totalPages}
+                  onPageChange={handlePageChange}
+                />
         </div>
       )}
 
