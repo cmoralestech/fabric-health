@@ -337,6 +337,32 @@ async function main() {
         scheduledById: admin.id
       }
     )
+
+    // Add more surgeries for pagination testing (next week and beyond)
+    for (let i = 5; i < 15; i++) {
+      surgeryData.push(
+        {
+          scheduledAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() + i, 9 + (i % 8), 0),
+          type: [
+            'Routine Checkup',
+            'Blood Work',
+            'X-Ray Examination', 
+            'MRI Scan',
+            'CT Scan',
+            'Ultrasound',
+            'Physical Therapy',
+            'Consultation',
+            'Follow-up Visit',
+            'Biopsy Procedure'
+          ][i % 10],
+          status: ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED'][i % 3] as any,
+          notes: `Routine medical procedure scheduled for ${['follow-up', 'diagnostic', 'therapeutic'][i % 3]} purposes`,
+          patientId: patients[i % patients.length].id,
+          surgeonId: [surgeon.id, surgeon2.id, surgeon3.id, admin.id][i % 4],
+          scheduledById: [admin.id, staff.id][i % 2]
+        }
+      )
+    }
   }
 
   // Create surgeries only if we have users and patients
