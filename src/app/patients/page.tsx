@@ -10,7 +10,6 @@ import PatientTableView from "@/components/patients/PatientTableView";
 import AddPatientModal from "@/components/patients/AddPatientModal";
 import PatientDetailsModal from "@/components/patients/PatientDetailsModal";
 import ScheduleSurgeryModal from "@/components/surgeries/ScheduleSurgeryModal";
-import ViewToggle from "@/components/ui/ViewToggle";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Pagination } from "@/components/ui/Pagination";
@@ -23,8 +22,6 @@ import {
   FileText,
   UserPlus,
   X,
-  SortAsc,
-  SortDesc,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -209,31 +206,16 @@ export default function PatientsPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-200px)]">
-        <div className="space-y-6">
-          {/* Compact Professional Header */}
+      <main className="flex-1 py-4 sm:py-6 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-200px)]">
+        <div className="space-y-6 pb-32 sm:pb-0">
+          {/* Clean Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-200">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Patient Directory
-              </h1>
-              <div className="flex items-center gap-6 text-sm text-gray-500">
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  {pagination.total} Total
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  {patients.filter((p) => p.surgeryCount > 0).length} Active
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  {patients.reduce((sum, p) => sum + p.surgeryCount, 0)}{" "}
-                  Surgeries
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold text-gray-900">
+              Patient Directory
+            </h1>
+
+            {/* Add Patient Button - Desktop Only (Hidden on Mobile due to sticky bottom button) */}
+            <div className="hidden sm:block">
               <Button
                 onClick={() => setShowAddModal(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium"
@@ -249,106 +231,9 @@ export default function PatientsPage() {
               onSearch={handleSearch}
               isLoading={loading}
               totalResults={pagination.total}
+              viewType={viewType}
+              onViewChange={setViewType}
             />
-          </div>
-
-          {/* Enhanced Results Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-xl p-4 shadow-sm border border-gray-200/60">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <User className="w-4 h-4 text-blue-600" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {loading
-                      ? "Searching..."
-                      : `${pagination.total} Patient${
-                          pagination.total !== 1 ? "s" : ""
-                        }`}
-                  </h2>
-                  {(filters.search ||
-                    filters.ageMin ||
-                    filters.ageMax ||
-                    filters.birthYear ||
-                    filters.birthDate) && (
-                    <p className="text-sm text-gray-500">Filtered results</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Clear Filters Button */}
-              {(filters.search ||
-                filters.ageMin ||
-                filters.ageMax ||
-                filters.birthYear ||
-                filters.birthDate ||
-                filters.sortBy !== "name" ||
-                filters.sortOrder !== "asc") && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    setFilters({
-                      search: "",
-                      ageMin: "",
-                      ageMax: "",
-                      birthYear: "",
-                      birthDate: "",
-                      sortBy: "name",
-                      sortOrder: "asc",
-                    })
-                  }
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <X className="w-3 h-3 mr-1" />
-                  Clear filters
-                </Button>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              {/* Sort Controls */}
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-500">Sort by:</span>
-                <select
-                  value={filters.sortBy}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, sortBy: e.target.value }))
-                  }
-                  className="text-sm border border-gray-300 rounded px-2 py-1 focus:border-blue-500 focus:outline-none bg-white"
-                >
-                  <option value="name">Name</option>
-                  <option value="age">Age</option>
-                  <option value="birthDate">Birth Date</option>
-                  <option value="createdAt">Date Added</option>
-                </select>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      sortOrder: prev.sortOrder === "asc" ? "desc" : "asc",
-                    }))
-                  }
-                  className="p-1"
-                >
-                  {filters.sortOrder === "asc" ? (
-                    <SortAsc className="w-4 h-4" />
-                  ) : (
-                    <SortDesc className="w-4 h-4" />
-                  )}
-                </Button>
-              </div>
-
-              <div className="text-sm text-gray-400 hidden lg:block">|</div>
-
-              <div className="text-sm text-gray-500 hidden sm:block">
-                View as:
-              </div>
-              <ViewToggle view={viewType} onViewChange={setViewType} />
-            </div>
           </div>
 
           {/* Patient Results */}
@@ -569,33 +454,13 @@ export default function PatientsPage() {
           {/* Pagination */}
           {patients.length > 0 && pagination.totalPages > 1 && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="text-sm text-gray-600">
-                  Showing{" "}
-                  <span className="font-semibold text-gray-900">
-                    {(pagination.page - 1) * pagination.limit + 1}
-                  </span>{" "}
-                  to{" "}
-                  <span className="font-semibold text-gray-900">
-                    {Math.min(
-                      pagination.page * pagination.limit,
-                      pagination.total
-                    )}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-semibold text-gray-900">
-                    {pagination.total}
-                  </span>{" "}
-                  patients
-                </div>
-                <Pagination
-                  currentPage={pagination.page}
-                  totalPages={pagination.totalPages}
-                  totalItems={pagination.total}
-                  itemsPerPage={pagination.limit}
-                  onPageChange={handlePageChange}
-                />
-              </div>
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.total}
+                itemsPerPage={pagination.limit}
+                onPageChange={handlePageChange}
+              />
             </div>
           )}
         </div>
@@ -647,6 +512,19 @@ export default function PatientsPage() {
           </div>
         </div>
       )}
+
+      {/* Sticky Add Patient Button - Mobile Only with Safe Area */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-safe bg-white border-t border-gray-200 sm:hidden z-50 safe-area-inset-bottom">
+        <div className="pb-2">
+          <Button
+            onClick={() => setShowAddModal(true)}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 text-lg font-semibold rounded-xl shadow-lg"
+          >
+            <UserPlus className="w-6 h-6 mr-3" />
+            Add Patient
+          </Button>
+        </div>
+      </div>
 
       <AppFooter />
     </div>

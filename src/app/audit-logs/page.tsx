@@ -710,10 +710,12 @@ export default function AuditLogsPage() {
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
-              <div className="mt-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 mt-6">
                 <Pagination
                   currentPage={pagination.page}
                   totalPages={pagination.totalPages}
+                  totalItems={pagination.totalCount}
+                  itemsPerPage={pagination.limit}
                   onPageChange={handlePageChange}
                 />
               </div>

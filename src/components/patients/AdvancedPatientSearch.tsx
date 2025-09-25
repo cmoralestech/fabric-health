@@ -4,7 +4,17 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card, CardContent } from "@/components/ui/Card";
-import { Search, Filter, X, Calendar, Hash, Loader2 } from "lucide-react";
+import {
+  Search,
+  Filter,
+  X,
+  Calendar,
+  Hash,
+  Loader2,
+  CheckCircle,
+  Download,
+} from "lucide-react";
+import ViewToggle from "@/components/ui/ViewToggle";
 
 // Debounce hook for search optimization
 function useDebounce<T>(value: T, delay: number): T {
@@ -39,11 +49,15 @@ interface AdvancedPatientSearchProps {
   totalResults?: number;
   onClearFilters?: () => void;
   currentFilters?: SearchFilters;
+  viewType?: "cards" | "table";
+  onViewChange?: (view: "cards" | "table") => void;
 }
 
 export default function AdvancedPatientSearch({
   onSearch,
   isLoading = false,
+  viewType = "cards",
+  onViewChange,
 }: AdvancedPatientSearchProps) {
   const [filters, setFilters] = useState<SearchFilters>({
     search: "",
@@ -112,41 +126,90 @@ export default function AdvancedPatientSearch({
 
   return (
     <div className="space-y-4">
-      {/* Main Search Bar */}
-      <div className="flex gap-3">
-        <div className="relative flex-1">
-          {searchLoading ? (
-            <Loader2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4 animate-spin" />
-          ) : (
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          )}
-          <Input
-            type="text"
-            placeholder="Search patients by name, email, or phone..."
-            value={filters.search}
-            onChange={(e) => handleFilterChange("search", e.target.value)}
-            className="pl-10 h-12 text-base border-2 focus:border-blue-500"
-          />
-          {filters.search && (
-            <button
-              onClick={() => handleFilterChange("search", "")}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+      {/* Enhanced Search Bar - Consistent with Surgery Page */}
+      <div className="relative mb-4">
+        {searchLoading ? (
+          <Loader2 className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-500 w-5 h-5 animate-spin" />
+        ) : (
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        )}
+        <input
+          type="text"
+          placeholder="Search patients by name, email, or phone..."
+          value={filters.search}
+          onChange={(e) => handleFilterChange("search", e.target.value)}
+          className="w-full pl-14 pr-4 py-4 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-400"
+        />
+        {filters.search && (
+          <button
+            onClick={() => handleFilterChange("search", "")}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Controls Row - Identical to Surgery Page */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Button
+            variant={showAdvanced ? "primary" : "outline"}
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            size="sm"
+            className={`px-4 py-2 ${
+              showAdvanced
+                ? "bg-blue-50 border-blue-200 text-blue-700"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Filters</span>
+            <span className="sm:hidden">Filter</span>
+            {hasActiveFilters && (
+              <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full"></span>
+            )}
+          </Button>
+
+          {hasActiveFilters && (
+            <Button
+              onClick={clearFilters}
+              variant="outline"
+              size="sm"
+              className="text-gray-600 hover:bg-gray-50 px-4 py-2"
             >
-              <X className="w-4 h-4" />
-            </button>
+              <X className="w-4 h-4 mr-2" />
+              Clear
+            </Button>
           )}
         </div>
-        <Button
-          variant={showAdvanced ? "primary" : "outline"}
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="h-12 px-4"
-        >
-          <Filter className="w-4 h-4 mr-2" />
-          Filters
-          {hasActiveFilters && (
-            <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full"></span>
-          )}
-        </Button>
+
+        <div className="flex items-center gap-3">
+          <ViewToggle
+            view={viewType}
+            onViewChange={onViewChange || (() => {})}
+          />
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-gray-600 hover:bg-gray-50 hidden sm:flex"
+          >
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Select All
+          </Button>
+
+          <div className="hidden sm:block">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-600 hover:bg-gray-50"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Advanced Filters */}

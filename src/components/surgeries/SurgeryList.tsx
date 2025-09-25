@@ -464,161 +464,109 @@ export default function SurgeryList({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Compact Professional Header */}
-      <div className="flex flex-col gap-4 pb-4 border-b border-gray-200">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="space-y-2">
-            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
-              Surgery Schedule
-            </h1>
-            {/* Mobile: Stack stats vertically, Desktop: Horizontal */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm text-gray-500">
-              <div className="flex items-center gap-4 sm:gap-6">
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  {filteredSurgeries.length} Total
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  {
-                    filteredSurgeries.filter((s) => s.status === "SCHEDULED")
-                      .length
-                  }{" "}
-                  Scheduled
-                </span>
-              </div>
-              <div className="flex items-center gap-4 sm:gap-6">
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                  {
-                    filteredSurgeries.filter((s) => s.status === "IN_PROGRESS")
-                      .length
-                  }{" "}
-                  Active
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  {
-                    filteredSurgeries.filter((s) => s.status === "CANCELLED")
-                      .length
-                  }{" "}
-                  Cancelled
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button
-              onClick={onScheduleNew}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 text-sm font-medium flex-1 sm:flex-initial"
-            >
-              <Plus className="w-4 h-4 mr-1 sm:mr-2" />
-              <span className="hidden xs:inline">Schedule Surgery</span>
-              <span className="xs:hidden">Schedule</span>
-            </Button>
-          </div>
+    <div className="space-y-6 pb-32 sm:pb-0">
+      {/* Clean Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-200">
+        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
+          Surgery Schedule
+        </h1>
+
+        {/* Schedule Button - Desktop Only (Hidden on Mobile due to sticky bottom button) */}
+        <div className="hidden sm:block">
+          <Button
+            onClick={onScheduleNew}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Schedule Surgery
+          </Button>
         </div>
       </div>
 
-      {/* Advanced Search and Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-3 sm:p-4">
-        <div className="flex flex-col gap-3 sm:gap-4">
-          {/* Search Bar */}
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search surgeries..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
-              />
-            </div>
-          </div>
+      {/* Search and Filters */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-4">
+        {/* Search Bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search surgeries..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-14 pr-4 py-4 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-gray-400"
+          />
+        </div>
 
-          {/* Filter Controls - Mobile Responsive */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <div className="flex items-center gap-2 flex-wrap">
+        {/* Controls Row */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              variant="outline"
+              size="sm"
+              className={`px-4 py-2 ${
+                showAdvancedFilters
+                  ? "bg-blue-50 border-blue-200 text-blue-700"
+                  : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Filters</span>
+              <span className="sm:hidden">Filter</span>
+            </Button>
+
+            {(dateFilter !== "ALL" ||
+              typeFilter !== "ALL" ||
+              surgeonFilter !== "ALL" ||
+              searchTerm) && (
               <Button
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                onClick={resetAllFilters}
                 variant="outline"
                 size="sm"
-                className={`${
-                  showAdvancedFilters
-                    ? "bg-blue-50 border-blue-200 text-blue-700"
-                    : "text-gray-600"
-                }`}
+                className="text-gray-600 hover:bg-gray-50 px-4 py-2"
               >
-                <Filter className="w-4 h-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Filters</span>
-                <span className="sm:hidden">Filter</span>
+                <X className="w-4 h-4 mr-2" />
+                Clear
               </Button>
+            )}
+          </div>
 
-              {(dateFilter !== "ALL" ||
-                typeFilter !== "ALL" ||
-                surgeonFilter !== "ALL" ||
-                searchTerm) && (
-                <Button
-                  onClick={resetAllFilters}
-                  variant="outline"
-                  size="sm"
-                  className="text-gray-600 hover:bg-gray-50"
-                >
-                  <X className="w-4 h-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Clear</span>
-                  <span className="sm:hidden">Clear</span>
-                </Button>
-              )}
+          <div className="flex items-center gap-3">
+            <ViewToggle view={view} onViewChange={setView} />
 
-              <ViewToggle view={view} onViewChange={setView} />
-            </div>
+            {filteredSurgeries.length > 0 && (
+              <Button
+                onClick={
+                  selectedSurgeries.size === filteredSurgeries.length
+                    ? clearSelection
+                    : selectAllSurgeries
+                }
+                variant="outline"
+                size="sm"
+                className="text-gray-600 hover:bg-gray-50 hidden sm:flex"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Select All
+              </Button>
+            )}
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="hidden sm:block">
-                <ExportSurgeriesButton
-                  surgeries={filteredSurgeries}
-                  selectedSurgeries={selectedSurgeries}
-                />
-              </div>
+            {selectedSurgeries.size > 0 && (
+              <Button
+                onClick={() => setShowBulkActions(!showBulkActions)}
+                variant="outline"
+                size="sm"
+                className="bg-purple-50 border-purple-200 text-purple-700"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                {selectedSurgeries.size}
+              </Button>
+            )}
 
-              {filteredSurgeries.length > 0 && (
-                <Button
-                  onClick={
-                    selectedSurgeries.size === filteredSurgeries.length
-                      ? clearSelection
-                      : selectAllSurgeries
-                  }
-                  variant="outline"
-                  size="sm"
-                  className="text-gray-600 hover:bg-gray-50 text-xs sm:text-sm"
-                >
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">
-                    {selectedSurgeries.size === filteredSurgeries.length
-                      ? "Deselect All"
-                      : "Select All"}
-                  </span>
-                  <span className="sm:hidden">
-                    {selectedSurgeries.size === filteredSurgeries.length
-                      ? "Deselect"
-                      : "Select"}
-                  </span>
-                </Button>
-              )}
-
-              {selectedSurgeries.size > 0 && (
-                <Button
-                  onClick={() => setShowBulkActions(!showBulkActions)}
-                  variant="outline"
-                  size="sm"
-                  className="bg-purple-50 border-purple-200 text-purple-700 text-xs sm:text-sm"
-                >
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  {selectedSurgeries.size} Selected
-                </Button>
-              )}
+            <div className="hidden sm:block">
+              <ExportSurgeriesButton
+                surgeries={filteredSurgeries}
+                selectedSurgeries={selectedSurgeries}
+              />
             </div>
           </div>
         </div>
@@ -735,8 +683,8 @@ export default function SurgeryList({
         )}
       </div>
 
-      {/* Compact Filters - Mobile Optimized */}
-      <div className="flex flex-wrap gap-1 sm:gap-2 items-center">
+      {/* Status Filter Pills - Mobile Optimized */}
+      <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-3">
         {filters.map((status) => {
           const count =
             status === "ALL"
@@ -748,39 +696,38 @@ export default function SurgeryList({
               variant={filter === status ? "primary" : "outline"}
               size="sm"
               onClick={() => setFilter(status)}
-              className={`text-xs px-2 sm:px-3 py-1 sm:py-2 ${
+              className={`relative px-4 py-3 font-medium text-center min-h-[60px] sm:min-h-[auto] sm:px-4 sm:py-2 ${
                 filter === status
-                  ? "bg-blue-600 text-white border-blue-600"
+                  ? "bg-blue-600 text-white border-blue-600 shadow-md"
                   : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
               }`}
             >
-              <span className="hidden sm:inline">
-                {status === "ALL" ? "All" : status.replace("_", " ")}
-              </span>
-              <span className="sm:hidden">
-                {status === "ALL"
-                  ? "All"
-                  : status === "IN_PROGRESS"
-                  ? "Active"
-                  : status === "COMPLETED"
-                  ? "Done"
-                  : status === "CANCELLED"
-                  ? "Cancelled"
-                  : status === "POSTPONED"
-                  ? "Delayed"
-                  : status.replace("_", " ")}
-              </span>
-              {count > 0 && (
-                <span
-                  className={`ml-1 sm:ml-1.5 px-1 sm:px-1.5 py-0.5 text-xs rounded-full ${
-                    filter === status
-                      ? "bg-white/20"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {count}
+              <div className="flex flex-col items-center justify-center gap-1 sm:flex-row sm:gap-2">
+                <span className="text-sm font-semibold sm:text-sm">
+                  {status === "ALL"
+                    ? "All"
+                    : status === "IN_PROGRESS"
+                    ? "Active"
+                    : status === "COMPLETED"
+                    ? "Done"
+                    : status === "CANCELLED"
+                    ? "Cancelled"
+                    : status === "POSTPONED"
+                    ? "Delayed"
+                    : status.replace("_", " ")}
                 </span>
-              )}
+                {count > 0 && (
+                  <span
+                    className={`text-lg font-bold sm:text-sm sm:px-2 sm:py-0.5 sm:rounded-full ${
+                      filter === status
+                        ? "text-white sm:bg-white/20"
+                        : "text-gray-900 sm:bg-gray-100 sm:text-gray-600"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </div>
             </Button>
           );
         })}
@@ -1100,10 +1047,12 @@ export default function SurgeryList({
 
       {/* Pagination */}
       {!loading && surgeries.length > 0 && pagination.totalPages > 1 && (
-        <div className="mt-6 flex justify-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 mt-6">
           <Pagination
             currentPage={pagination.page}
             totalPages={pagination.totalPages}
+            totalItems={pagination.total}
+            itemsPerPage={pagination.limit}
             onPageChange={handlePageChange}
           />
         </div>
@@ -1142,6 +1091,19 @@ export default function SurgeryList({
         type="success"
         isLoading={isActionLoading}
       />
+
+      {/* Sticky Schedule Button - Mobile Only with Safe Area */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-safe bg-white border-t border-gray-200 sm:hidden z-50 safe-area-inset-bottom">
+        <div className="pb-2">
+          <Button
+            onClick={onScheduleNew}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 text-lg font-semibold rounded-xl shadow-lg"
+          >
+            <Plus className="w-6 h-6 mr-3" />
+            Schedule Surgery
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
