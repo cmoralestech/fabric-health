@@ -73,12 +73,14 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
           fetch('/api/patients'),
           fetch('/api/users/surgeons')
         ])
-        
+
         if (patientsRes.ok) {
           const patientsData = await patientsRes.json()
-          setPatients(patientsData)
+          if (Array.isArray(patientsData?.patients)) {
+            setPatients(patientsData?.patients)
+          }
         }
-        
+
         if (surgeonsRes.ok) {
           const surgeonsData = await surgeonsRes.json()
           setSurgeons(surgeonsData)
@@ -93,7 +95,7 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true)
-    
+
     try {
       const payload = {
         surgery: data.surgery,
@@ -136,23 +138,23 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Schedule New Surgery</CardTitle>
-            <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={onClose}
-            className="h-8 w-8 p-0"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0"
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Patient Selection */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Patient Information</h3>
-              
+              <h3 className="text-lg font-medium text-black">Patient Information</h3>
+
               <div className="flex gap-4">
                 <Button
                   type="button"
@@ -177,7 +179,7 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                 </Button>
               </div>
 
-              {isNewPatient ? (
+              {isNewPatient && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Patient Name *"
@@ -202,17 +204,19 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                     error={errors.patient?.phone?.message}
                   />
                 </div>
-              ) : (
+              )}
+              {!isNewPatient && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Select Patient *
                   </label>
                   <select
                     {...register('surgery.patientId')}
-                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black"
                   >
                     <option value="">Select a patient...</option>
-                    {patients.map((patient) => (
+
+                    {patients.length > 0 && patients.map((patient) => (
                       <option key={patient.id} value={patient.id}>
                         {patient.name} (Age {patient.age})
                       </option>
@@ -227,8 +231,8 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
 
             {/* Surgery Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Surgery Details</h3>
-              
+              <h3 className="text-lg font-medium text-black">Surgery Details</h3>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -236,7 +240,7 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                   </label>
                   <select
                     {...register('surgery.type')}
-                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black"
                   >
                     {surgeryTypes.map((type) => (
                       <option key={type} value={type}>
@@ -255,12 +259,12 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                   </label>
                   <select
                     {...register('surgery.surgeonId')}
-                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black"
                   >
                     <option value="">Select a surgeon...</option>
                     {surgeons.map((surgeon) => (
                       <option key={surgeon.id} value={surgeon.id}>
-{surgeon.name}
+                        {surgeon.name}
                       </option>
                     ))}
                   </select>
@@ -285,7 +289,7 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                 <textarea
                   {...register('surgery.notes')}
                   rows={3}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black"
                   placeholder="Any additional notes or special instructions..."
                 />
               </div>

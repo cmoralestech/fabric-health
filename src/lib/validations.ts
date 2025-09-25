@@ -83,10 +83,9 @@ export const createSurgerySchema = z.object({
     const now = new Date()
     return scheduledDate > now
   }, 'Surgery must be scheduled for a future date and time'),
-  type: z.enum(surgeryTypes, {
-    errorMap: () => ({ message: 'Please select a valid surgery type' })
-  }),
-  patientId: z.string().min(1, 'Patient is required'),
+  type: z.enum(surgeryTypes, { error: 'Please select a valid surgery type' }),
+  /* patientId: z.string().min(1, 'Patient is required'), */
+  patientId: z.string().optional(),
   surgeonId: z.string().min(1, 'Surgeon is required'),
   notes: z.string().optional()
 })

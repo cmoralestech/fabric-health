@@ -133,9 +133,9 @@ export async function POST(request: NextRequest) {
     const validatedSurgery = createSurgerySchema.parse(body.surgery)
     
     // Handle patient creation or selection
-    let patientId = validatedSurgery.patientId
+    let patientId = validatedSurgery.patientId || ""
     
-    if (body.patient) {
+    if (body.patient && !patientId) {
       // Creating new patient
       const patientData = sanitizePatientData(body.patient)
       const birthDate = new Date(patientData.birthDate)

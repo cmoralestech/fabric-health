@@ -247,7 +247,7 @@ export default function PatientsPage() {
                 <select
                   value={filters.sortBy}
                   onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
-                  className="text-sm border border-gray-300 rounded px-2 py-1 focus:border-blue-500 focus:outline-none bg-white"
+                  className="text-sm border border-gray-300 rounded px-2 py-1 focus:border-blue-500 focus:outline-none bg-white text-black"
                 >
                   <option value="name">Name</option>
                   <option value="age">Age</option>
