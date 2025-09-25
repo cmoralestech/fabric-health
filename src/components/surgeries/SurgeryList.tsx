@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { Pagination } from '@/components/ui/Pagination'
 import ViewToggle from '@/components/ui/ViewToggle'
 import ConfirmationModal from '@/components/ui/ConfirmationModal'
 import SurgeryTableView from './SurgeryTableView'
@@ -83,6 +84,16 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
   const [view, setView] = useState<'cards' | 'table'>('cards')
   const [selectedSurgeries, setSelectedSurgeries] = useState<Set<string>>(new Set())
   const [showBulkActions, setShowBulkActions] = useState(false)
+  
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false
+  })
   
   // Confirmation modal states
   const [showCancelModal, setShowCancelModal] = useState(false)
@@ -177,12 +188,19 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
     await handleBulkStatusUpdate('CANCELLED')
   }
 
-  const fetchSurgeries = async () => {
+  const fetchSurgeries = async (page: number = 1) => {
     try {
-      const response = await fetch(`/api/surgeries?status=${filter}`)
+      const params = new URLSearchParams({
+        status: filter,
+        page: page.toString(),
+        limit: pagination.limit.toString()
+      })
+      
+      const response = await fetch(`/api/surgeries?${params}`)
       if (response.ok) {
         const data = await response.json()
         setSurgeries(data.surgeries)
+        setPagination(data.pagination)
       }
     } catch (error) {
       console.error('Error fetching surgeries:', error)
@@ -191,8 +209,12 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
     }
   }
 
+  const handlePageChange = (page: number) => {
+    fetchSurgeries(page)
+  }
+
   useEffect(() => {
-    fetchSurgeries()
+    fetchSurgeries(1) // Reset to page 1 when filter changes
   }, [filter])
 
   const handleCancelSurgery = (surgery: Surgery) => {
@@ -475,7 +497,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
       {/* Compact Filters */}
       <div className="flex flex-wrap gap-2 items-center">
         {filters.map((status) => {
-          const count = status === 'ALL' ? surgeries.length : surgeries.filter(s => s.status === status).length
+          const count = status === 'ALL' ? pagination.total : surgeries.filter(s => s.status === status).length
           return (
             <Button
               key={status}
@@ -730,6 +752,18 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
               <Button onClick={onScheduleNew}>Schedule New Surgery</Button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && surgeries.length > 0 && pagination.totalPages > 1 && (
+        <div className="mt-6 flex justify-center">
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+            showPageNumbers={true}
+          />
         </div>
       )}
 
