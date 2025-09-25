@@ -5,13 +5,15 @@ import { authOptions } from '@/lib/auth'
 import { createPatientSchema, calculateAge, sanitizePatientData } from '@/lib/validations'
 import { 
   getSecurityContext, 
-  hasPermission, 
-  logAuditEvent, 
+  hasEnhancedPermission, 
+  logAuditEventToDatabase, 
   sanitizePHI, 
   validatePHIInput, 
   addSecurityHeaders,
-  checkRateLimit 
+  checkAdvancedRateLimit,
+  maskPHI
 } from '@/lib/security'
+import { handleSecureError, AuthenticationError, AuthorizationError, RateLimitError } from '@/lib/secure-errors'
 
 // GET /api/patients - Get all patients with advanced search and filtering
 export async function GET(request: NextRequest) {
@@ -19,19 +21,19 @@ export async function GET(request: NextRequest) {
     // HIPAA Security: Get security context
     const securityContext = await getSecurityContext(request)
     if (!securityContext) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      throw new AuthenticationError()
     }
 
-    // HIPAA Security: Check permissions
-    if (!hasPermission(securityContext.userRole, 'read', 'patients')) {
-      await logAuditEvent('unauthorized_access', 'patients', 'all', securityContext, false, 'Insufficient permissions')
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // HIPAA Security: Check enhanced permissions
+    if (!hasEnhancedPermission(securityContext.userRole, 'patients', 'read')) {
+      await logAuditEventToDatabase('UNAUTHORIZED_ACCESS', 'patients', 'all', securityContext, false, 'Insufficient permissions to read patients')
+      throw new AuthorizationError()
     }
 
-    // HIPAA Security: Rate limiting
-    if (!checkRateLimit(securityContext.ipAddress)) {
-      await logAuditEvent('rate_limit_exceeded', 'patients', 'all', securityContext, false, 'Rate limit exceeded')
-      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    // HIPAA Security: Advanced rate limiting for read operations
+    if (!checkAdvancedRateLimit(securityContext.userId, 'api_read', securityContext.ipAddress)) {
+      await logAuditEventToDatabase('RATE_LIMIT_EXCEEDED', 'patients', 'all', securityContext, false, 'Read rate limit exceeded')
+      throw new RateLimitError()
     }
 
     const { searchParams } = new URL(request.url)
@@ -134,14 +136,28 @@ export async function GET(request: NextRequest) {
       surgeryCount: patient._count.surgeries
     }))
 
-    // HIPAA Security: Sanitize PHI data before response
-    const sanitizedPatients = patientsWithCounts.map(patient => sanitizePHI(patient))
+    // HIPAA Security: Apply data masking based on user permissions
+    const maskedPatients = patientsWithCounts.map(patient => 
+      maskPHI(sanitizePHI(patient), securityContext.userRole)
+    )
 
-    // HIPAA Security: Log successful access
-    await logAuditEvent('read_patients', 'patients', 'all', securityContext, true)
+    // HIPAA Security: Log successful access with enhanced audit
+    await logAuditEventToDatabase(
+      'READ_PATIENTS', 
+      'patients', 
+      'collection', 
+      securityContext, 
+      true,
+      undefined,
+      { 
+        count: patients.length, 
+        filters: { search, ageMin, ageMax, birthYear, birthDate },
+        totalResults: totalCount 
+      }
+    )
 
     const response = NextResponse.json({
-      patients: sanitizedPatients,
+      patients: maskedPatients,
       pagination: {
         page,
         limit,
@@ -154,18 +170,13 @@ export async function GET(request: NextRequest) {
 
     return addSecurityHeaders(response)
   } catch (error) {
-    console.error('Get patients error:', error)
-    
-    // HIPAA Security: Log error
-    const securityContext = await getSecurityContext(request)
-    if (securityContext) {
-      await logAuditEvent('read_patients', 'patients', 'all', securityContext, false, error instanceof Error ? error.message : 'Unknown error')
-    }
-    
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleSecureError(error, {
+      resource: 'patients',
+      action: 'read',
+      userId: securityContext?.userId,
+      ipAddress: securityContext?.ipAddress,
+      userAgent: securityContext?.userAgent
+    }, securityContext)
   }
 }
 

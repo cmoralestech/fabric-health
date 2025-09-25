@@ -26,14 +26,17 @@ export async function middleware(request: NextRequest) {
 
   // Rate limiting for API endpoints
   if (pathname.startsWith('/api/')) {
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+    const forwarded = request.headers.get('x-forwarded-for')
+    const realIP = request.headers.get('x-real-ip')
+    const ip = forwarded?.split(',')[0].trim() || realIP || 'unknown'
     
     // Simple rate limiting (in production, use Redis or similar)
+    // NOTE: Rate limits increased for assessment/demo purposes
     const rateLimitKey = `rate_limit_${ip}`
     const rateLimitData = request.cookies.get(rateLimitKey)
     const now = Date.now()
     const windowMs = 15 * 60 * 1000 // 15 minutes
-    const maxRequests = 1000
+    const maxRequests = 2000 // Increased for assessment (production: 1000)
     
     if (rateLimitData) {
       const { count, timestamp } = JSON.parse(rateLimitData.value)

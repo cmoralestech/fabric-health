@@ -2,6 +2,17 @@
 
 A secure, modern web application for managing surgical schedules and patient information, built with Next.js, TypeScript, and MongoDB.
 
+## 📋 **ASSESSMENT NOTE**
+
+**⚠️ This is a demonstration/assessment project configured for team review.**
+
+**Security settings have been relaxed for testing purposes:**
+- Login rate limits increased to 20 attempts per 15 minutes (production: 5 attempts)
+- API rate limits increased for easier testing
+- All changes are clearly documented with `ASSESSMENT MODE` comments in the code
+
+**For production deployment, see `SECURITY.md` for proper security configuration.**
+
 ## 🏥 Features
 
 - **Surgery Scheduling**: Schedule new surgeries with comprehensive patient and surgeon information
