@@ -1024,7 +1024,7 @@ export default function SurgeryList({
 
       {filteredSurgeries.length === 0 && !loading && (
         <div className="text-center py-12">
-          <Calendar className="mx-auto h-12 w-12 text-gray-400" />
+          <Calendar className="h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">
             {searchTerm
               ? "No surgeries match your search"

@@ -4,16 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card, CardContent } from "@/components/ui/Card";
-import {
-  Search,
-  Filter,
-  X,
-  Calendar,
-  Hash,
-  Loader2,
-  CheckCircle,
-  Download,
-} from "lucide-react";
+import { Search, Filter, X, Calendar, Hash, Loader2 } from "lucide-react";
 import ViewToggle from "@/components/ui/ViewToggle";
 
 // Debounce hook for search optimization
@@ -189,26 +180,6 @@ export default function AdvancedPatientSearch({
             view={viewType}
             onViewChange={onViewChange || (() => {})}
           />
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-gray-600 hover:bg-gray-50 hidden sm:flex"
-          >
-            <CheckCircle className="w-4 h-4 mr-2" />
-            Select All
-          </Button>
-
-          <div className="hidden sm:block">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-600 hover:bg-gray-50"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-          </div>
         </div>
       </div>
 
