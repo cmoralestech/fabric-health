@@ -23,6 +23,7 @@ model User {
   // Relations
   scheduledSurgeries Surgery[] @relation("ScheduledBy")
   performedSurgeries Surgery[] @relation("PerformedBy")
+  sessions           UserSession[]
 
   @@map("users")
 }
@@ -92,4 +93,72 @@ enum SurgeryStatus {
   COMPLETED
   CANCELLED
   POSTPONED
+}
+
+// HIPAA-compliant audit logging
+model AuditLog {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  action         String   // CREATE, READ, UPDATE, DELETE, EXPORT, LOGIN, etc.
+  resource       String   // patients, surgeries, users, etc.
+  resourceId     String   // ID of the affected resource
+  userId         String   // User who performed the action
+  userRole       String   // Role of the user at time of action
+  userEmail      String   // Email for additional tracking
+  timestamp      DateTime @default(now())
+  ipAddress      String   // Source IP address
+  userAgent      String   // Browser/client information
+  success        Boolean  // Whether the action succeeded
+  errorMessage   String?  // Error details if action failed
+  sessionId      String   // Session identifier
+  additionalData String?  // JSON string for additional context
+  
+  // HIPAA requires 6-year retention minimum
+  retentionDate  DateTime // When this record can be safely deleted
+  
+  @@map("audit_logs")
+  @@index([userId, timestamp])
+  @@index([resource, resourceId])
+  @@index([action, timestamp])
+}
+
+// Enhanced session management for security
+model UserSession {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId         String   @unique
+  userId            String   @db.ObjectId
+  createdAt         DateTime @default(now())
+  lastAccessedAt    DateTime @default(now())
+  expiresAt         DateTime
+  ipAddress         String
+  userAgent         String
+  deviceFingerprint String?
+  isActive          Boolean  @default(true)
+  terminatedAt      DateTime?
+  terminationReason String?  // logout, timeout, security, admin
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_sessions")
+  @@index([userId, isActive])
+  @@index([sessionId])
+  @@index([expiresAt])
+}
+
+// Data encryption metadata for PHI fields
+model EncryptionMetadata {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  resourceType String   // patients, surgeries, etc.
+  resourceId   String   // ID of the resource
+  fieldName    String   // Name of the encrypted field
+  encryptedData String  // The encrypted value
+  iv           String   // Initialization vector
+  tag          String   // Authentication tag
+  keyVersion   Int      @default(1) // For key rotation
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@map("encryption_metadata")
+  @@index([resourceType, resourceId])
+  @@index([keyVersion])
 }
