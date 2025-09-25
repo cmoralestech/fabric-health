@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
+import { AppFooter } from "@/components/layout/Footer";
 import AdvancedPatientSearch from "@/components/patients/AdvancedPatientSearch";
 import PatientTableView from "@/components/patients/PatientTableView";
 import AddPatientModal from "@/components/patients/AddPatientModal";
@@ -72,6 +73,7 @@ export default function PatientsPage() {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedPatientForSurgery, setSelectedPatientForSurgery] =
     useState<Patient | null>(null);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
     limit: 20,
@@ -125,6 +127,18 @@ export default function PatientsPage() {
     fetchPatients(1);
   }, [filters]);
 
+  // Check if disclaimer should be shown on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const disclaimerDismissed = sessionStorage.getItem(
+        "medical-disclaimer-dismissed"
+      );
+      if (!disclaimerDismissed) {
+        setShowDisclaimer(true);
+      }
+    }
+  }, []);
+
   const handleSearch = (newFilters: SearchFilters) => {
     setFilters(newFilters);
   };
@@ -158,6 +172,14 @@ export default function PatientsPage() {
     fetchPatients(pagination.page);
   };
 
+  // Handle disclaimer dismissal
+  const handleDismissDisclaimer = () => {
+    setShowDisclaimer(false);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("medical-disclaimer-dismissed", "true");
+    }
+  };
+
   const getAgeCategory = (age: number) => {
     if (age < 18)
       return { label: "Pediatric", color: "bg-green-100 text-green-800" };
@@ -187,7 +209,7 @@ export default function PatientsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex flex-col">
       <Navbar />
 
       {/* Enhanced Header Section */}
@@ -611,6 +633,34 @@ export default function PatientsPage() {
         patient={selectedPatientForSurgery}
         onSurgeryScheduled={handleSurgeryScheduled}
       />
+
+      {/* Dismissible medical disclaimer */}
+      {showDisclaimer && (
+        <div className="fixed bottom-4 right-4 max-w-xs animate-in slide-in-from-right duration-300 z-50">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 shadow-lg">
+            <div className="flex items-start justify-between">
+              <p className="text-xs text-amber-700 pr-2">
+                ⚠️ For healthcare management only. Not for medical emergencies.
+                <a
+                  href="/compliance"
+                  className="underline hover:text-amber-800 ml-1"
+                >
+                  View disclaimers
+                </a>
+              </p>
+              <button
+                onClick={handleDismissDisclaimer}
+                className="flex-shrink-0 text-amber-600 hover:text-amber-800 transition-colors"
+                title="Dismiss disclaimer"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <AppFooter />
     </div>
   );
 }
