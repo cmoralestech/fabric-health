@@ -12,8 +12,16 @@ import {
   ChevronDown,
   Settings,
   User,
+  Shield,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  newTab?: boolean;
+}
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -22,9 +30,19 @@ export default function Navbar() {
   const pathname = usePathname();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  const navigation = [
+  const navigation: NavigationItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: Calendar },
     { name: "Patients", href: "/patients", icon: Users },
+    ...(session?.user?.role === "ADMIN"
+      ? [
+          {
+            name: "Audit Logs",
+            href: "/audit-logs",
+            icon: Shield,
+            newTab: true,
+          },
+        ]
+      : []),
   ];
 
   // Close user menu when clicking outside
@@ -69,6 +87,8 @@ export default function Navbar() {
                   <Link
                     key={item.name}
                     href={item.href}
+                    target={item.newTab ? "_blank" : undefined}
+                    rel={item.newTab ? "noopener noreferrer" : undefined}
                     className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 group ${
                       active
                         ? "text-blue-700 bg-blue-50 shadow-sm"
@@ -83,6 +103,21 @@ export default function Navbar() {
                       }`}
                     />
                     {item.name}
+                    {item.newTab && (
+                      <svg
+                        className="w-3 h-3 ml-1 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    )}
                     {active && (
                       <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full"></div>
                     )}
@@ -202,6 +237,8 @@ export default function Navbar() {
                 <Link
                   key={item.name}
                   href={item.href}
+                  target={item.newTab ? "_blank" : undefined}
+                  rel={item.newTab ? "noopener noreferrer" : undefined}
                   className={`flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all duration-200 ${
                     active
                       ? "text-blue-700 bg-blue-50 shadow-sm"
@@ -215,6 +252,21 @@ export default function Navbar() {
                     }`}
                   />
                   {item.name}
+                  {item.newTab && (
+                    <svg
+                      className="w-4 h-4 ml-2 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  )}
                   {active && (
                     <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full"></div>
                   )}

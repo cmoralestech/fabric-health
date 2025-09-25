@@ -6,12 +6,14 @@ import { createPatientSchema, calculateAge, sanitizePatientData } from '@/lib/va
 import { 
   getSecurityContext, 
   hasEnhancedPermission, 
-  logAuditEventToDatabase, 
+  logAuditEvent, 
   sanitizePHI, 
   validatePHIInput, 
   addSecurityHeaders,
   checkAdvancedRateLimit,
-  maskPHI
+  maskPHI,
+  hasPermission,
+  checkRateLimit
 } from '@/lib/security'
 import { handleSecureError, AuthenticationError, AuthorizationError, RateLimitError } from '@/lib/secure-errors'
 
@@ -26,13 +28,13 @@ export async function GET(request: NextRequest) {
 
     // HIPAA Security: Check enhanced permissions
     if (!hasEnhancedPermission(securityContext.userRole, 'patients', 'read')) {
-      await logAuditEventToDatabase('UNAUTHORIZED_ACCESS', 'patients', 'all', securityContext, false, 'Insufficient permissions to read patients')
+      await logAuditEvent('UNAUTHORIZED_ACCESS', 'patients', 'all', securityContext, false, 'Insufficient permissions to read patients')
       throw new AuthorizationError()
     }
 
     // HIPAA Security: Advanced rate limiting for read operations
     if (!checkAdvancedRateLimit(securityContext.userId, 'api_read', securityContext.ipAddress)) {
-      await logAuditEventToDatabase('RATE_LIMIT_EXCEEDED', 'patients', 'all', securityContext, false, 'Read rate limit exceeded')
+      await logAuditEvent('RATE_LIMIT_EXCEEDED', 'patients', 'all', securityContext, false, 'Read rate limit exceeded')
       throw new RateLimitError()
     }
 
@@ -141,19 +143,14 @@ export async function GET(request: NextRequest) {
       maskPHI(sanitizePHI(patient), securityContext.userRole)
     )
 
-    // HIPAA Security: Log successful access with enhanced audit
-    await logAuditEventToDatabase(
-      'READ_PATIENTS', 
+    // HIPAA Security: Log successful access
+    await logAuditEvent(
+      'READ', 
       'patients', 
-      'collection', 
+      `collection_${patients.length}_records`, 
       securityContext, 
       true,
-      undefined,
-      { 
-        count: patients.length, 
-        filters: { search, ageMin, ageMax, birthYear, birthDate },
-        totalResults: totalCount 
-      }
+      `Retrieved ${patients.length} patients with filters: ${JSON.stringify({ search, ageMin, ageMax, birthYear, birthDate })}`
     )
 
     const response = NextResponse.json({
@@ -245,7 +242,7 @@ export async function POST(request: NextRequest) {
     })
 
     // HIPAA Security: Log successful creation
-    await logAuditEvent('create_patient', 'patients', patient.id, securityContext, true)
+    await logAuditEvent('CREATE', 'patient', patient.id, securityContext, true, `Created patient: ${patient.name}`)
 
     const response = NextResponse.json(sanitizePHI(patient), { status: 201 })
     return addSecurityHeaders(response)
@@ -255,7 +252,7 @@ export async function POST(request: NextRequest) {
     // HIPAA Security: Log error
     const securityContext = await getSecurityContext(request)
     if (securityContext) {
-      await logAuditEvent('create_patient', 'patients', 'new', securityContext, false, error instanceof Error ? error.message : 'Unknown error')
+      await logAuditEvent('CREATE', 'patient', 'failed', securityContext, false, error instanceof Error ? error.message : 'Unknown error')
     }
     
     return NextResponse.json(
