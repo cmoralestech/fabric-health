@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, SurgeryStatus } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -343,8 +343,12 @@ async function main() {
   if (admin && surgeon && staff && patients.length > 0) {
     try {
       await Promise.all(
-        surgeryData.map(data => 
-          prisma.surgery.create({ data })
+        surgeryData.map(d => 
+          prisma.surgery.create({ data: {
+            ...d,
+            status: d.status as SurgeryStatus,
+            type: d.type
+          }})
         )
       )
       console.log('✅ Surgeries created')

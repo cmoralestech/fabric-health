@@ -21,16 +21,37 @@ interface Surgery {
   id: string
   scheduledAt: string
   type: string
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'POSTPONED'
+  priority: 'EMERGENCY' | 'URGENT' | 'ROUTINE' | 'ELECTIVE'
+  estimatedDuration?: number // in minutes
+  actualDuration?: number // in minutes
+  operatingRoom?: string
   notes?: string
   patient: {
     id: string
     name: string
     age: number
+    birthDate: string
   }
   surgeon: {
     id: string
     name: string
+    email: string
+  }
+  scheduledBy: {
+    id: string
+    name: string
+    email: string
+  }
+  assistantSurgeon?: {
+    id: string
+    name: string
+    email: string
+  }
+  anesthesiologist?: {
+    id: string
+    name: string
+    email: string
   }
 }
 
