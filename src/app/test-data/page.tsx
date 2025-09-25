@@ -98,10 +98,17 @@ export default function TestDataPage() {
             <CardContent>
               <div className="space-y-2">
                 {data?.users.map((user) => (
-                  <div key={user.id as string} className="p-2 bg-gray-50 rounded">
+                  <div
+                    key={user.id as string}
+                    className="p-2 bg-gray-50 rounded"
+                  >
                     <div className="font-medium">{user.name as string}</div>
-                    <div className="text-sm text-gray-600">{user.email as string}</div>
-                    <div className="text-xs text-blue-600">{user.role as string}</div>
+                    <div className="text-sm text-gray-600">
+                      {user.email as string}
+                    </div>
+                    <div className="text-xs text-blue-600">
+                      {user.role as string}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -116,12 +123,17 @@ export default function TestDataPage() {
             <CardContent>
               <div className="space-y-2">
                 {data?.patients.map((patient) => (
-                  <div key={patient.id as string} className="p-2 bg-gray-50 rounded">
+                  <div
+                    key={patient.id as string}
+                    className="p-2 bg-gray-50 rounded"
+                  >
                     <div className="font-medium">{patient.name as string}</div>
                     <div className="text-sm text-gray-600">
                       Age: {patient.age as number}
                     </div>
-                    <div className="text-xs text-gray-500">{patient.email as string}</div>
+                    <div className="text-xs text-gray-500">
+                      {patient.email as string}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -136,7 +148,10 @@ export default function TestDataPage() {
             <CardContent>
               <div className="space-y-2">
                 {data?.surgeries.map((surgery) => (
-                  <div key={surgery.id as string} className="p-2 bg-gray-50 rounded">
+                  <div
+                    key={surgery.id as string}
+                    className="p-2 bg-gray-50 rounded"
+                  >
                     <div className="font-medium">{surgery.type as string}</div>
                     <div className="text-sm text-gray-600">
                       Patient: {(surgery.patient as { name: string }).name}
