@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { createSurgerySchema, createPatientSchema, surgeryTypes } from '@/lib/validations'
+import { X } from 'lucide-react'
 
 interface Patient {
   id: string
@@ -135,9 +136,14 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Schedule New Surgery</CardTitle>
-            <Button variant="ghost" onClick={onClose}>
-              ×
-            </Button>
+            <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onClose}
+            className="h-8 w-8 p-0"
+          >
+            <X className="w-4 h-4" />
+          </Button>
           </div>
         </CardHeader>
         

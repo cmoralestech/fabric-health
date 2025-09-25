@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
     const rateLimitData = request.cookies.get(rateLimitKey)
     const now = Date.now()
     const windowMs = 15 * 60 * 1000 // 15 minutes
-    const maxRequests = 100
+    const maxRequests = 1000
     
     if (rateLimitData) {
       const { count, timestamp } = JSON.parse(rateLimitData.value)

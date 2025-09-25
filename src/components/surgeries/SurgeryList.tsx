@@ -16,7 +16,7 @@ interface Surgery {
   id: string
   scheduledAt: string
   type: string
-  status: 'SCHEDULED' | 'PRE_OP' | 'IN_PROGRESS' | 'POST_OP' | 'RECOVERY' | 'COMPLETED' | 'CANCELLED' | 'POSTPONED'
+  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'POSTPONED'
   priority: 'EMERGENCY' | 'URGENT' | 'ROUTINE' | 'ELECTIVE'
   estimatedDuration?: number // in minutes
   actualDuration?: number // in minutes
@@ -58,12 +58,10 @@ interface SurgeryListProps {
 const filterOptions = [
   { value: 'ALL', label: 'All Surgeries', count: 0 },
   { value: 'SCHEDULED', label: 'Scheduled', count: 0 },
-  { value: 'PRE_OP', label: 'Pre-Op', count: 0 },
   { value: 'IN_PROGRESS', label: 'In Progress', count: 0 },
-  { value: 'POST_OP', label: 'Post-Op', count: 0 },
-  { value: 'RECOVERY', label: 'Recovery', count: 0 },
   { value: 'COMPLETED', label: 'Completed', count: 0 },
-  { value: 'CANCELLED', label: 'Cancelled', count: 0 }
+  { value: 'CANCELLED', label: 'Cancelled', count: 0 },
+  { value: 'POSTPONED', label: 'Postponed', count: 0 }
 ]
 
 const priorityOptions = [
@@ -116,13 +114,10 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'SCHEDULED': return 'bg-blue-100 text-blue-800'
-      case 'PRE_OP': return 'bg-yellow-100 text-yellow-800'
       case 'IN_PROGRESS': return 'bg-orange-100 text-orange-800'
-      case 'POST_OP': return 'bg-purple-100 text-purple-800'
-      case 'RECOVERY': return 'bg-indigo-100 text-indigo-800'
       case 'COMPLETED': return 'bg-green-100 text-green-800'
       case 'CANCELLED': return 'bg-red-100 text-red-800'
-      case 'POSTPONED': return 'bg-gray-100 text-gray-800'
+      case 'POSTPONED': return 'bg-purple-100 text-purple-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -256,7 +251,7 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
     }
   }
 
-  const filters = ['ALL', 'SCHEDULED', 'PRE_OP', 'IN_PROGRESS', 'POST_OP', 'RECOVERY', 'COMPLETED', 'CANCELLED']
+  const filters = ['ALL', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'POSTPONED']
 
   // Enhanced filtering with priority, search, and other criteria
   const filteredSurgeries = surgeries.filter(surgery => {
@@ -440,12 +435,12 @@ export default function SurgeryList({ onScheduleNew, onEditSurgery }: SurgeryLis
               </div>
               <div className="flex items-center gap-2">
                 <Button
-                  onClick={() => handleBulkStatusUpdate('PRE_OP')}
+                  onClick={() => handleBulkStatusUpdate('IN_PROGRESS')}
                   size="sm"
                   variant="outline"
                   className="border-purple-300 text-purple-700 hover:bg-purple-100"
                 >
-                  Move to Pre-Op
+                  Mark In Progress
                 </Button>
                 <Button
                   onClick={() => handleBulkStatusUpdate('POSTPONED')}

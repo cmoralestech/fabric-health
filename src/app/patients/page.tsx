@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Pagination } from '@/components/ui/Pagination'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { User, Calendar, Phone, Mail, Activity, MapPin, Clock, FileText, UserPlus } from 'lucide-react'
+import { User, Calendar, Phone, Mail, Activity, MapPin, Clock, FileText, UserPlus, X, SortAsc, SortDesc } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
 interface Patient {
@@ -192,11 +192,13 @@ export default function PatientsPage() {
         <div className="space-y-6">
           {/* Enhanced Search Section */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-            <AdvancedPatientSearch
-              onSearch={handleSearch}
-              isLoading={loading}
-              totalResults={pagination.total}
-            />
+            <div className="p-4 sm:p-6">
+              <AdvancedPatientSearch
+                onSearch={handleSearch}
+                isLoading={loading}
+                totalResults={pagination.total}
+              />
+            </div>
           </div>
 
           {/* Enhanced Results Header */}
@@ -215,8 +217,59 @@ export default function PatientsPage() {
                   )}
                 </div>
               </div>
+              
+              {/* Clear Filters Button */}
+              {(filters.search || filters.ageMin || filters.ageMax || filters.birthYear || filters.birthDate || filters.sortBy !== 'name' || filters.sortOrder !== 'asc') && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFilters({
+                    search: '',
+                    ageMin: '',
+                    ageMax: '',
+                    birthYear: '',
+                    birthDate: '',
+                    sortBy: 'name',
+                    sortOrder: 'asc'
+                  })}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <X className="w-3 h-3 mr-1" />
+                  Clear filters
+                </Button>
+              )}
             </div>
+            
             <div className="flex items-center gap-3">
+              {/* Sort Controls */}
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-500">Sort by:</span>
+                <select
+                  value={filters.sortBy}
+                  onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
+                  className="text-sm border border-gray-300 rounded px-2 py-1 focus:border-blue-500 focus:outline-none bg-white"
+                >
+                  <option value="name">Name</option>
+                  <option value="age">Age</option>
+                  <option value="birthDate">Birth Date</option>
+                  <option value="createdAt">Date Added</option>
+                </select>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFilters(prev => ({ ...prev, sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc' }))}
+                  className="p-1"
+                >
+                  {filters.sortOrder === 'asc' ? (
+                    <SortAsc className="w-4 h-4" />
+                  ) : (
+                    <SortDesc className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+              
+              <div className="text-sm text-gray-400 hidden lg:block">|</div>
+              
               <div className="text-sm text-gray-500 hidden sm:block">View as:</div>
               <ViewToggle 
                 view={viewType} 

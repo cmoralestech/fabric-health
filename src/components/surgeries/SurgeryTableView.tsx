@@ -139,7 +139,7 @@ export default function SurgeryTableView({
               <th className="px-4 py-3 text-left">
                 <SortButton field="status">Status</SortButton>
               </th>
-              <th className="px-4 py-3 text-center">Actions</th>
+              <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -195,8 +195,8 @@ export default function SurgeryTableView({
                     <td className="px-4 py-3">
                       <StatusBadge status={surgery.status} />
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center gap-1 justify-end">
                         <Button
                           variant="outline"
                           size="sm"

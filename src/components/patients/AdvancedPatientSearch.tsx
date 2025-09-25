@@ -37,12 +37,16 @@ interface AdvancedPatientSearchProps {
   onSearch: (filters: SearchFilters) => void
   isLoading?: boolean
   totalResults?: number
+  onClearFilters?: () => void
+  currentFilters?: SearchFilters
 }
 
 export default function AdvancedPatientSearch({ 
   onSearch, 
   isLoading = false, 
-  totalResults = 0 
+  totalResults = 0,
+  onClearFilters,
+  currentFilters
 }: AdvancedPatientSearchProps) {
   const [filters, setFilters] = useState<SearchFilters>({
     search: '',
@@ -148,53 +152,6 @@ export default function AdvancedPatientSearch({
         </Button>
       </div>
 
-      {/* Results Summary */}
-      <div className="flex items-center justify-between text-sm text-gray-600">
-        <div className="flex items-center gap-4">
-          <span>
-            {isLoading ? 'Searching...' : `${totalResults} patients found`}
-          </span>
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <X className="w-3 h-3 mr-1" />
-              Clear filters
-            </Button>
-          )}
-        </div>
-        
-        {/* Quick Sort */}
-        <div className="flex items-center gap-2">
-          <span>Sort by:</span>
-          <select
-            value={filters.sortBy}
-            onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-            className="text-sm border border-gray-300 rounded px-2 py-1 focus:border-blue-500 focus:outline-none"
-          >
-            {sortOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleFilterChange('sortOrder', filters.sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="p-1"
-          >
-            {filters.sortOrder === 'asc' ? (
-              <SortAsc className="w-4 h-4" />
-            ) : (
-              <SortDesc className="w-4 h-4" />
-            )}
-          </Button>
-        </div>
-      </div>
 
       {/* Advanced Filters */}
       {showAdvanced && (
