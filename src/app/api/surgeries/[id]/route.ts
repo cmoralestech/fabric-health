@@ -28,7 +28,7 @@ export async function GET(
     }
 
     // Check permissions for surgery reading
-    if (!hasPermission(securityContext.userRole, "read", "surgery")) {
+    if (!hasPermission(securityContext.userRole, "read")) {
       await logAuditEvent(
         "VIEW",
         "surgery",
@@ -132,7 +132,7 @@ export async function PATCH(
     }
 
     // Check permissions for surgery updating
-    if (!hasPermission(securityContext.userRole, "write", "surgery")) {
+    if (!hasPermission(securityContext.userRole, "write")) {
       await logAuditEvent(
         "UPDATE",
         "surgery",
@@ -190,7 +190,7 @@ export async function PATCH(
     }
 
     // Prepare update data
-    const updateData: Record<string, any> = { ...validatedData };
+    const updateData: Record<string, unknown> = { ...validatedData };
 
     if (validatedData.scheduledAt) {
       updateData.scheduledAt = new Date(validatedData.scheduledAt);
@@ -277,7 +277,7 @@ export async function DELETE(
     }
 
     // Check permissions for surgery deletion/cancellation
-    if (!hasPermission(securityContext.userRole, "delete", "surgery")) {
+    if (!hasPermission(securityContext.userRole, "delete")) {
       await logAuditEvent(
         "DELETE",
         "surgery",

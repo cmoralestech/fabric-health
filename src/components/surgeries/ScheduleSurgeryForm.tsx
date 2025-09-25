@@ -1,32 +1,36 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { createSurgerySchema, createPatientSchema, surgeryTypes } from '@/lib/validations'
-import { X } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import {
+  createSurgerySchema,
+  createPatientSchema,
+  surgeryTypes,
+} from "@/lib/validations";
+import { X } from "lucide-react";
 
 interface Patient {
-  id: string
-  name: string
-  age: number
-  birthDate: string
+  id: string;
+  name: string;
+  age: number;
+  birthDate: string;
 }
 
 interface Surgeon {
-  id: string
-  name: string
-  email: string
-  role: string
+  id: string;
+  name: string;
+  email: string;
+  role: string;
 }
 
 interface ScheduleSurgeryFormProps {
-  onClose: () => void
-  onSuccess: () => void
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
 // Schema when it's a new patient
@@ -41,7 +45,7 @@ const existingPatientSchema = z.object({
   isNewPatient: z.literal(false),
   surgery: createSurgerySchema.omit({ patientId: true }).extend({
     patientId: z.string(), // must provide an existing patientId
-  })
+  }),
 });
 
 // Final combined schema
@@ -52,104 +56,105 @@ const combinedSchema = z.discriminatedUnion("isNewPatient", [
 
 type FormData = z.infer<typeof combinedSchema>;
 
-export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurgeryFormProps) {
-  const [patients, setPatients] = useState<Patient[]>([])
-  const [surgeons, setSurgeons] = useState<Surgeon[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isNewPatient, setIsNewPatient] = useState(true)
+export default function ScheduleSurgeryForm({
+  onClose,
+  onSuccess,
+}: ScheduleSurgeryFormProps) {
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [surgeons, setSurgeons] = useState<Surgeon[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isNewPatient, setIsNewPatient] = useState(true);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
     setValue,
-    reset
   } = useForm<FormData>({
     resolver: zodResolver(combinedSchema),
     defaultValues: {
       isNewPatient: true,
       surgery: {
-        scheduledAt: '',
+        scheduledAt: "",
         type: surgeryTypes[0],
-        surgeonId: '',
-        notes: ''
+        surgeonId: "",
+        notes: "",
       },
       patient: {
-        name: '',
-        birthDate: '',
-        phone: '',
-        email: ''
-      }
-    }
-  })
+        name: "",
+        birthDate: "",
+        phone: "",
+        email: "",
+      },
+    },
+  });
 
   // Fetch patients and surgeons
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [patientsRes, surgeonsRes] = await Promise.all([
-          fetch('/api/patients'),
-          fetch('/api/users/surgeons')
-        ])
+          fetch("/api/patients"),
+          fetch("/api/users/surgeons"),
+        ]);
 
         if (patientsRes.ok) {
-          const patientsData = await patientsRes.json()
+          const patientsData = await patientsRes.json();
           if (Array.isArray(patientsData?.patients)) {
-            setPatients(patientsData?.patients)
+            setPatients(patientsData?.patients);
           }
         }
 
         if (surgeonsRes.ok) {
-          const surgeonsData = await surgeonsRes.json()
-          setSurgeons(surgeonsData)
+          const surgeonsData = await surgeonsRes.json();
+          setSurgeons(surgeonsData);
         }
       } catch (error) {
-        console.error('Error fetching data:', error)
+        console.error("Error fetching data:", error);
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       const payload = {
         surgery: data.surgery,
-        patient: isNewPatient ? data.patient : undefined
-      }
+        patient: data.isNewPatient ? data.patient : undefined,
+      };
 
-      const response = await fetch('/api/surgeries', {
-        method: 'POST',
+      const response = await fetch("/api/surgeries", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload)
-      })
+        body: JSON.stringify(payload),
+      });
 
       if (response.ok) {
-        onSuccess()
-        onClose()
+        onSuccess();
+        onClose();
       } else {
-        const errorData = await response.json()
-        alert(errorData.error || 'Failed to schedule surgery')
+        const errorData = await response.json();
+        alert(errorData.error || "Failed to schedule surgery");
       }
     } catch (error) {
-      console.error('Error scheduling surgery:', error)
-      alert('Failed to schedule surgery')
+      console.error("Error scheduling surgery:", error);
+      alert("Failed to schedule surgery");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   // Get minimum datetime (current time + 1 hour)
   const getMinDateTime = () => {
-    const now = new Date()
-    now.setHours(now.getHours() + 1)
-    return now.toISOString().slice(0, 16)
-  }
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    return now.toISOString().slice(0, 16);
+  };
 
   return (
     <div className="fixed inset-0 bg-black/20 flex items-center justify-center p-4 z-50">
@@ -169,29 +174,36 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit, (errs) => console.log('RHF errors:', errs))} className="space-y-6">
+          <form
+            onSubmit={handleSubmit(onSubmit, (errs) =>
+              console.log("RHF errors:", errs)
+            )}
+            className="space-y-6"
+          >
             {/* Patient Selection */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-black">Patient Information</h3>
+              <h3 className="text-lg font-medium text-black">
+                Patient Information
+              </h3>
 
               <div className="flex gap-4">
                 <Button
                   type="button"
-                  variant={isNewPatient ? 'primary' : 'outline'}
+                  variant={isNewPatient ? "primary" : "outline"}
                   onClick={() => {
-                    setIsNewPatient(true)
-                    setValue('isNewPatient', true)
-                    setValue('surgery.patientId', '')
+                    setIsNewPatient(true);
+                    setValue("isNewPatient", true);
+                    setValue("surgery.patientId", "");
                   }}
                 >
                   New Patient
                 </Button>
                 <Button
                   type="button"
-                  variant={!isNewPatient ? 'primary' : 'outline'}
+                  variant={!isNewPatient ? "primary" : "outline"}
                   onClick={() => {
-                    setIsNewPatient(false)
-                    setValue('isNewPatient', false)
+                    setIsNewPatient(false);
+                    setValue("isNewPatient", false);
                   }}
                 >
                   Existing Patient
@@ -202,25 +214,61 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Patient Name *"
-                    {...register('patient.name')}
-                    error={(errors.patient as any)?.name?.message}
+                    {...register("patient.name")}
+                    error={
+                      (
+                        (
+                          (errors as Record<string, unknown>).patient as Record<
+                            string,
+                            unknown
+                          >
+                        )?.name as Record<string, unknown>
+                      )?.message as string
+                    }
                   />
                   <Input
                     label="Birth Date *"
                     type="date"
-                    {...register('patient.birthDate')}
-                    error={(errors.patient as any)?.birthDate?.message}
+                    {...register("patient.birthDate")}
+                    error={
+                      (
+                        (
+                          (errors as Record<string, unknown>).patient as Record<
+                            string,
+                            unknown
+                          >
+                        )?.birthDate as Record<string, unknown>
+                      )?.message as string
+                    }
                   />
                   <Input
                     label="Email"
                     type="email"
-                    {...register('patient.email')}
-                    error={(errors.patient as any)?.email?.message}
+                    {...register("patient.email")}
+                    error={
+                      (
+                        (
+                          (errors as Record<string, unknown>).patient as Record<
+                            string,
+                            unknown
+                          >
+                        )?.email as Record<string, unknown>
+                      )?.message as string
+                    }
                   />
                   <Input
                     label="Phone"
-                    {...register('patient.phone')}
-                    error={(errors.patient as any)?.phone?.message}
+                    {...register("patient.phone")}
+                    error={
+                      (
+                        (
+                          (errors as Record<string, unknown>).patient as Record<
+                            string,
+                            unknown
+                          >
+                        )?.phone as Record<string, unknown>
+                      )?.message as string
+                    }
                   />
                 </div>
               )}
@@ -230,19 +278,34 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                     Select Patient *
                   </label>
                   <select
-                    {...register('surgery.patientId')}
+                    {...register("surgery.patientId")}
                     className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black"
                   >
                     <option value="">Select a patient...</option>
 
-                    {patients.length > 0 && patients.map((patient) => (
-                      <option key={patient.id} value={patient.id}>
-                        {patient.name} (Age {patient.age})
-                      </option>
-                    ))}
+                    {patients.length > 0 &&
+                      patients.map((patient) => (
+                        <option key={patient.id} value={patient.id}>
+                          {patient.name} (Age {patient.age})
+                        </option>
+                      ))}
                   </select>
-                  {(errors.surgery as any)?.patientId && (
-                    <p className="text-sm text-red-600 mt-1">{(errors.surgery as any).patientId.message}</p>
+                  {!!(
+                    (errors as Record<string, unknown>).surgery as Record<
+                      string,
+                      unknown
+                    >
+                  )?.patientId && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {
+                        (
+                          (
+                            (errors as Record<string, unknown>)
+                              .surgery as Record<string, unknown>
+                          )?.patientId as Record<string, unknown>
+                        )?.message as string
+                      }
+                    </p>
                   )}
                 </div>
               )}
@@ -250,7 +313,9 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
 
             {/* Surgery Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-black">Surgery Details</h3>
+              <h3 className="text-lg font-medium text-black">
+                Surgery Details
+              </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -258,7 +323,7 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                     Surgery Type *
                   </label>
                   <select
-                    {...register('surgery.type')}
+                    {...register("surgery.type")}
                     className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black"
                   >
                     {surgeryTypes.map((type) => (
@@ -268,7 +333,9 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                     ))}
                   </select>
                   {errors.surgery?.type && (
-                    <p className="text-sm text-red-600 mt-1">{errors.surgery.type.message}</p>
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.surgery.type.message}
+                    </p>
                   )}
                 </div>
 
@@ -277,7 +344,7 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                     Surgeon *
                   </label>
                   <select
-                    {...register('surgery.surgeonId')}
+                    {...register("surgery.surgeonId")}
                     className="w-full h-10 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black"
                   >
                     <option value="">Select a surgeon...</option>
@@ -288,7 +355,9 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                     ))}
                   </select>
                   {errors.surgery?.surgeonId && (
-                    <p className="text-sm text-red-600 mt-1">{errors.surgery.surgeonId.message}</p>
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.surgery.surgeonId.message}
+                    </p>
                   )}
                 </div>
               </div>
@@ -297,7 +366,7 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                 label="Scheduled Date & Time *"
                 type="datetime-local"
                 min={getMinDateTime()}
-                {...register('surgery.scheduledAt')}
+                {...register("surgery.scheduledAt")}
                 error={errors.surgery?.scheduledAt?.message}
               />
 
@@ -306,7 +375,7 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                   Notes
                 </label>
                 <textarea
-                  {...register('surgery.notes')}
+                  {...register("surgery.notes")}
                   rows={3}
                   className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black"
                   placeholder="Any additional notes or special instructions..."
@@ -324,11 +393,7 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                isLoading={isSubmitting}
-                className="flex-1"
-              >
+              <Button type="submit" isLoading={isSubmitting} className="flex-1">
                 Schedule Surgery
               </Button>
             </div>
@@ -336,6 +401,5 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

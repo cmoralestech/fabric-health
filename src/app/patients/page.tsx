@@ -11,7 +11,7 @@ import AddPatientModal from "@/components/patients/AddPatientModal";
 import PatientDetailsModal from "@/components/patients/PatientDetailsModal";
 import ScheduleSurgeryModal from "@/components/surgeries/ScheduleSurgeryModal";
 import ViewToggle from "@/components/ui/ViewToggle";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Pagination } from "@/components/ui/Pagination";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -20,9 +20,6 @@ import {
   Calendar,
   Phone,
   Mail,
-  Activity,
-  MapPin,
-  Clock,
   FileText,
   UserPlus,
   X,
@@ -62,7 +59,7 @@ interface PaginationInfo {
 }
 
 export default function PatientsPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewType, setViewType] = useState<"cards" | "table">("cards"); // Default to cards view
@@ -125,7 +122,7 @@ export default function PatientsPage() {
 
   useEffect(() => {
     fetchPatients(1);
-  }, [filters]);
+  }, [filters, fetchPatients]);
 
   // Check if disclaimer should be shown on mount
   useEffect(() => {
@@ -217,7 +214,9 @@ export default function PatientsPage() {
           {/* Compact Professional Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-200">
             <div className="space-y-1">
-              <h1 className="text-2xl font-semibold text-gray-900">Patient Directory</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Patient Directory
+              </h1>
               <div className="flex items-center gap-6 text-sm text-gray-500">
                 <span className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -229,12 +228,13 @@ export default function PatientsPage() {
                 </span>
                 <span className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  {patients.reduce((sum, p) => sum + p.surgeryCount, 0)} Surgeries
+                  {patients.reduce((sum, p) => sum + p.surgeryCount, 0)}{" "}
+                  Surgeries
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button 
+              <Button
                 onClick={() => setShowAddModal(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium"
               >

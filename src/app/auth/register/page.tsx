@@ -15,14 +15,14 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MinimalFooter } from "@/components/layout/Footer";
-import { createUserSchema, INVITATION_CODES } from "@/lib/validations";
+import { createUserSchema } from "@/lib/validations";
 import Link from "next/link";
 
 type RegisterData = {
   name: string;
   email: string;
   password: string;
-  role: "ADMIN" | "SURGEON" | "STAFF";
+  role?: "ADMIN" | "SURGEON" | "STAFF";
   invitationCode: string;
   medicalLicense?: string;
   hipaaAcknowledgment: boolean;
@@ -42,7 +42,6 @@ export default function Register() {
     handleSubmit,
     formState: { errors },
     watch,
-    setValue,
   } = useForm<RegisterData>({
     resolver: zodResolver(createUserSchema),
     defaultValues: {
@@ -54,7 +53,7 @@ export default function Register() {
   const watchedRole = watch("role");
 
   useEffect(() => {
-    setSelectedRole(watchedRole);
+    setSelectedRole(watchedRole || "STAFF");
   }, [watchedRole]);
 
   const onSubmit = async (data: RegisterData) => {
@@ -79,7 +78,7 @@ export default function Register() {
         const errorData = await response.json();
         setError(errorData.error || "Failed to create account");
       }
-    } catch (error) {
+    } catch {
       setError("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);

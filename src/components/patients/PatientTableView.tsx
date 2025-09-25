@@ -1,18 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import {
-  User,
-  Calendar,
-  Phone,
-  Mail,
-  Activity,
-  Eye,
-  UserPlus,
-  ArrowRight,
-} from "lucide-react";
-import { formatDate } from "@/lib/utils";
-import { useState, useEffect, useRef } from "react";
+import { User, Phone, Mail, Eye, UserPlus } from "lucide-react";
+import React from "react";
 
 interface Patient {
   id: string;
@@ -36,9 +26,6 @@ export default function PatientTableView({
   onViewPatient,
   onScheduleSurgery,
 }: PatientTableViewProps) {
-  const [hasScroll, setHasScroll] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
   const getAgeCategory = (age: number) => {
     if (age < 18)
       return { label: "Pediatric", color: "bg-green-100 text-green-800" };
@@ -47,182 +34,159 @@ export default function PatientTableView({
     return { label: "Adult", color: "bg-blue-100 text-blue-800" };
   };
 
-  // Check if horizontal scroll is needed
-  useEffect(() => {
-    const checkScroll = () => {
-      if (scrollRef.current) {
-        const hasHorizontalScroll =
-          scrollRef.current.scrollWidth > scrollRef.current.clientWidth;
-        setHasScroll(hasHorizontalScroll);
-      }
-    };
-
-    checkScroll();
-    window.addEventListener("resize", checkScroll);
-    return () => window.removeEventListener("resize", checkScroll);
-  }, [patients]);
-
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[800px]">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[180px]">
-                  Patient
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
-                  Age
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">
-                  Date of Birth
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[160px]">
-                  Contact
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
-                  Surgeries
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[110px]">
-                  Added
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[130px]">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {patients.map((patient) => {
-                const ageCategory = getAgeCategory(patient.age);
-                const birthYear = new Date(patient.birthDate).getFullYear();
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[180px]">
+                Patient
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
+                Age
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">
+                Date of Birth
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[160px]">
+                Contact
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
+                Surgeries
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[110px]">
+                Added
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[130px]">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {patients.map((patient) => {
+              const ageCategory = getAgeCategory(patient.age);
+              const birthYear = new Date(patient.birthDate).getFullYear();
 
-                return (
-                  <tr
-                    key={patient.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    {/* Patient Info */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-7 h-7 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                          <User className="w-3 h-3 text-white" />
-                        </div>
-                        <div className="ml-2 min-w-0">
-                          <div
-                            className="text-sm font-medium text-gray-900 truncate max-w-[100px]"
-                            title={patient.name}
-                          >
-                            {patient.name}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {patient.id.slice(-6)}
-                          </div>
-                        </div>
+              return (
+                <tr
+                  key={patient.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  {/* Patient Info */}
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="w-7 h-7 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <User className="w-3 h-3 text-white" />
                       </div>
-                    </td>
-
-                    {/* Age & Category */}
-                    <td className="px-3 py-3 whitespace-nowrap text-center">
-                      <div className="space-y-1">
-                        <span
-                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${ageCategory.color}`}
+                      <div className="ml-2 min-w-0">
+                        <div
+                          className="text-sm font-medium text-gray-900 truncate max-w-[100px]"
+                          title={patient.name}
                         >
-                          {ageCategory.label.charAt(0)}
-                        </span>
-                        <div className="text-sm text-gray-900">
-                          {patient.age}
+                          {patient.name}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {patient.id.slice(-6)}
                         </div>
                       </div>
-                    </td>
+                    </div>
+                  </td>
 
-                    {/* Date of Birth */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {new Date(patient.birthDate).toLocaleDateString(
-                          "en-US",
-                          {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          }
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500">{birthYear}</div>
-                    </td>
-
-                    {/* Contact */}
-                    <td className="px-3 py-3">
-                      <div className="space-y-1">
-                        {patient.email && (
-                          <div className="flex items-center text-xs text-gray-600">
-                            <Mail className="w-3 h-3 mr-1 text-gray-400 flex-shrink-0" />
-                            <span
-                              className="truncate max-w-[80px]"
-                              title={patient.email}
-                            >
-                              {patient.email.split("@")[0]}
-                            </span>
-                          </div>
-                        )}
-                        {patient.phone && (
-                          <div className="flex items-center text-xs text-gray-600">
-                            <Phone className="w-3 h-3 mr-1 text-gray-400 flex-shrink-0" />
-                            <span>{patient.phone.slice(-4)}</span>
-                          </div>
-                        )}
-                        {!patient.email && !patient.phone && (
-                          <span className="text-xs text-gray-400">—</span>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Medical History */}
-                    <td className="px-3 py-3 whitespace-nowrap text-center">
-                      <span className="text-sm font-medium text-slate-700">
-                        {patient.surgeryCount}
+                  {/* Age & Category */}
+                  <td className="px-3 py-3 whitespace-nowrap text-center">
+                    <div className="space-y-1">
+                      <span
+                        className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${ageCategory.color}`}
+                      >
+                        {ageCategory.label.charAt(0)}
                       </span>
-                    </td>
+                      <div className="text-sm text-gray-900">{patient.age}</div>
+                    </div>
+                  </td>
 
-                    {/* Added Date */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-xs text-gray-500">
-                        {new Date(patient.createdAt).toLocaleDateString(
-                          "en-US",
-                          {
-                            month: "short",
-                            day: "numeric",
-                          }
-                        )}
-                      </div>
-                    </td>
+                  {/* Date of Birth */}
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {new Date(patient.birthDate).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </div>
+                    <div className="text-xs text-gray-500">{birthYear}</div>
+                  </td>
 
-                    {/* Actions */}
-                    <td className="px-3 py-3 whitespace-nowrap text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="hover:bg-slate-50 hover:border-slate-300 px-2 py-1 text-xs transition-colors"
-                          onClick={() => onViewPatient?.(patient)}
-                          title={`View ${patient.name}'s complete medical profile and surgery history`}
-                        >
-                          <Eye className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 px-2 py-1 text-xs transition-colors"
-                          onClick={() => onScheduleSurgery?.(patient.id)}
-                          title={`Schedule a new surgery for ${patient.name}`}
-                        >
-                          <UserPlus className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+                  {/* Contact */}
+                  <td className="px-3 py-3">
+                    <div className="space-y-1">
+                      {patient.email && (
+                        <div className="flex items-center text-xs text-gray-600">
+                          <Mail className="w-3 h-3 mr-1 text-gray-400 flex-shrink-0" />
+                          <span
+                            className="truncate max-w-[80px]"
+                            title={patient.email}
+                          >
+                            {patient.email.split("@")[0]}
+                          </span>
+                        </div>
+                      )}
+                      {patient.phone && (
+                        <div className="flex items-center text-xs text-gray-600">
+                          <Phone className="w-3 h-3 mr-1 text-gray-400 flex-shrink-0" />
+                          <span>{patient.phone.slice(-4)}</span>
+                        </div>
+                      )}
+                      {!patient.email && !patient.phone && (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </div>
+                  </td>
+
+                  {/* Medical History */}
+                  <td className="px-3 py-3 whitespace-nowrap text-center">
+                    <span className="text-sm font-medium text-slate-700">
+                      {patient.surgeryCount}
+                    </span>
+                  </td>
+
+                  {/* Added Date */}
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-xs text-gray-500">
+                      {new Date(patient.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </div>
+                  </td>
+
+                  {/* Actions */}
+                  <td className="px-3 py-3 whitespace-nowrap text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="hover:bg-slate-50 hover:border-slate-300 px-2 py-1 text-xs transition-colors"
+                        onClick={() => onViewPatient?.(patient)}
+                        title={`View ${patient.name}'s complete medical profile and surgery history`}
+                      >
+                        <Eye className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 px-2 py-1 text-xs transition-colors"
+                        onClick={() => onScheduleSurgery?.(patient.id)}
+                        title={`Schedule a new surgery for ${patient.name}`}
+                      >
+                        <UserPlus className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
         </table>
       </div>
 

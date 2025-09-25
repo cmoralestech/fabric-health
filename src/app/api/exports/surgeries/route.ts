@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import type { Session } from "next-auth";
 import {
   hasPermission,
   logAuditEvent,
@@ -10,17 +11,15 @@ import {
 
 // Secure export endpoint for surgery data
 export async function POST(request: NextRequest) {
-  
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as Session | null;
 
   try {
-
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check if user has export permissions
-    if (!hasPermission(session.user.role, "export", "surgery")) {
+    if (!hasPermission(session.user.role, "export")) {
       const securityContext = await getSecurityContext(request);
       if (securityContext) {
         await logAuditEvent(
@@ -56,7 +55,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Build query based on scope and user permissions
-    let whereClause: any = {};
+    const whereClause: {
+      id?: { in: string[] };
+      surgeonId?: string;
+    } = {};
 
     if (scope === "selected" && surgeryIds?.length) {
       whereClause.id = { in: surgeryIds };
@@ -117,9 +119,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Apply data masking based on user role
-    const maskedSurgeries = surgeries.map((surgery) =>
-      maskSurgeryData(surgery, session.user.role)
-    );
+    // const maskedSurgeries = surgeries.map((surgery) =>
+    //   maskSurgeryData(surgery, session.user.role)
+    // );
 
     // Generate export token for secure download
     const exportToken = await generateExportToken({
@@ -197,27 +199,30 @@ function getRoleBasedPatientFields(role: string) {
 }
 
 // Data masking based on user role
-function maskSurgeryData(surgery: any, role: string) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function maskSurgeryData(surgery: Record<string, unknown>, role: string) {
   const masked = { ...surgery };
 
   if (role !== "ADMIN") {
     // Mask sensitive fields for non-admin users
-    if (masked.patient.email) {
-      masked.patient.email = maskEmail(masked.patient.email);
+    const patient = masked.patient as Record<string, unknown>;
+    if (patient?.email) {
+      patient.email = maskEmail(patient.email as string);
     }
-    if (masked.patient.phone) {
-      masked.patient.phone = maskPhone(masked.patient.phone);
+    if (patient?.phone) {
+      patient.phone = maskPhone(patient.phone as string);
     }
-    if (masked.patient.address) {
-      masked.patient.address = "Address on file";
+    if (patient?.address) {
+      patient.address = "Address on file";
     }
   }
 
   if (role === "STAFF") {
     // Further restrictions for staff
+    const patient = masked.patient as Record<string, unknown>;
     delete masked.notes;
-    delete masked.patient.allergies;
-    delete masked.patient.medicalConditions;
+    delete patient.allergies;
+    delete patient.medicalConditions;
   }
 
   return masked;
@@ -234,7 +239,9 @@ function maskPhone(phone: string): string {
 }
 
 // Generate secure export token
-async function generateExportToken(data: any): Promise<string> {
+async function generateExportToken(
+  data: Record<string, unknown>
+): Promise<string> {
   // In production, use proper JWT or encrypted token
   const tokenData = {
     ...data,

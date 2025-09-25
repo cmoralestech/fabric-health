@@ -1,120 +1,154 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
-import { X, User, Calendar, Mail, Phone, Save, Loader2, Shield, Users, MapPin, AlertTriangle, Heart } from 'lucide-react'
+import { useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/Card";
+import {
+  X,
+  User,
+  Calendar,
+  Mail,
+  Phone,
+  Save,
+  Loader2,
+  Shield,
+  Users,
+  MapPin,
+  AlertTriangle,
+  Heart,
+} from "lucide-react";
 
 interface AddPatientModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onPatientAdded: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  onPatientAdded: () => void;
 }
 
 interface PatientFormData {
-  name: string
-  birthDate: string
-  age: string
-  email: string
-  phone: string
-  address: string
-  emergencyContactName: string
-  emergencyContactPhone: string
-  emergencyContactRelation: string
-  insuranceProvider: string
-  insuranceNumber: string
-  allergies: string
-  medicalConditions: string
+  name: string;
+  birthDate: string;
+  age: string;
+  email: string;
+  phone: string;
+  address: string;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  emergencyContactRelation: string;
+  insuranceProvider: string;
+  insuranceNumber: string;
+  allergies: string;
+  medicalConditions: string;
 }
 
-export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: AddPatientModalProps) {
+export default function AddPatientModal({
+  isOpen,
+  onClose,
+  onPatientAdded,
+}: AddPatientModalProps) {
   const [formData, setFormData] = useState<PatientFormData>({
-    name: '',
-    birthDate: '',
-    age: '',
-    email: '',
-    phone: '',
-    address: '',
-    emergencyContactName: '',
-    emergencyContactPhone: '',
-    emergencyContactRelation: '',
-    insuranceProvider: '',
-    insuranceNumber: '',
-    allergies: '',
-    medicalConditions: ''
-  })
-  const [currentStep, setCurrentStep] = useState(1)
-  const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState<Partial<PatientFormData>>({})
+    name: "",
+    birthDate: "",
+    age: "",
+    email: "",
+    phone: "",
+    address: "",
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    emergencyContactRelation: "",
+    insuranceProvider: "",
+    insuranceNumber: "",
+    allergies: "",
+    medicalConditions: "",
+  });
+  const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Partial<PatientFormData>>({});
 
   // Calculate age from birth date
   const calculateAge = (birthDate: string) => {
-    if (!birthDate) return ''
-    const today = new Date()
-    const birth = new Date(birthDate)
-    let age = today.getFullYear() - birth.getFullYear()
-    const monthDiff = today.getMonth() - birth.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--
+    if (!birthDate) return "";
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
     }
-    return age.toString()
-  }
+    return age.toString();
+  };
 
   const handleInputChange = (field: keyof PatientFormData, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
       // Auto-calculate age when birth date changes
-      ...(field === 'birthDate' && { age: calculateAge(value) })
-    }))
-    
+      ...(field === "birthDate" && { age: calculateAge(value) }),
+    }));
+
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
   const validateStep = (step: number) => {
-    const newErrors: Partial<PatientFormData> = {}
-    
+    const newErrors: Partial<PatientFormData> = {};
+
     if (step === 1) {
-      if (!formData.name.trim()) newErrors.name = 'Full name is required'
-      if (!formData.birthDate) newErrors.birthDate = 'Date of birth is required'
-      if (!formData.age || parseInt(formData.age) < 0) newErrors.age = 'Valid age is required'
+      if (!formData.name.trim()) newErrors.name = "Full name is required";
+      if (!formData.birthDate)
+        newErrors.birthDate = "Date of birth is required";
+      if (!formData.age || parseInt(formData.age) < 0)
+        newErrors.age = "Valid age is required";
       if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-        newErrors.email = 'Please enter a valid email address'
+        newErrors.email = "Please enter a valid email address";
       }
-      if (formData.phone && !/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phone.replace(/\s/g, ''))) {
-        newErrors.phone = 'Please enter a valid phone number'
+      if (
+        formData.phone &&
+        !/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phone.replace(/\s/g, ""))
+      ) {
+        newErrors.phone = "Please enter a valid phone number";
       }
     }
-    
+
     if (step === 2) {
-      if (!formData.emergencyContactName.trim()) newErrors.emergencyContactName = 'Emergency contact name is required'
-      if (!formData.emergencyContactPhone.trim()) newErrors.emergencyContactPhone = 'Emergency contact phone is required'
-      if (!formData.emergencyContactRelation.trim()) newErrors.emergencyContactRelation = 'Relationship is required'
+      if (!formData.emergencyContactName.trim())
+        newErrors.emergencyContactName = "Emergency contact name is required";
+      if (!formData.emergencyContactPhone.trim())
+        newErrors.emergencyContactPhone = "Emergency contact phone is required";
+      if (!formData.emergencyContactRelation.trim())
+        newErrors.emergencyContactRelation = "Relationship is required";
     }
-    
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const validateForm = () => {
-    return validateStep(1) && validateStep(2)
-  }
+    return validateStep(1) && validateStep(2);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!validateForm()) return
-    
-    setLoading(true)
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    setLoading(true);
     try {
-      const response = await fetch('/api/patients', {
-        method: 'POST',
+      const response = await fetch("/api/patients", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: formData.name.trim(),
@@ -123,83 +157,86 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
           email: formData.email.trim() || undefined,
           phone: formData.phone.trim() || undefined,
           address: formData.address.trim() || undefined,
-          emergencyContactName: formData.emergencyContactName.trim() || undefined,
-          emergencyContactPhone: formData.emergencyContactPhone.trim() || undefined,
-          emergencyContactRelation: formData.emergencyContactRelation.trim() || undefined,
+          emergencyContactName:
+            formData.emergencyContactName.trim() || undefined,
+          emergencyContactPhone:
+            formData.emergencyContactPhone.trim() || undefined,
+          emergencyContactRelation:
+            formData.emergencyContactRelation.trim() || undefined,
           insuranceProvider: formData.insuranceProvider.trim() || undefined,
           insuranceNumber: formData.insuranceNumber.trim() || undefined,
           allergies: formData.allergies.trim() || undefined,
           medicalConditions: formData.medicalConditions.trim() || undefined,
         }),
-      })
+      });
 
       if (response.ok) {
         // Reset form
         setFormData({
-          name: '',
-          birthDate: '',
-          age: '',
-          email: '',
-          phone: '',
-          address: '',
-          emergencyContactName: '',
-          emergencyContactPhone: '',
-          emergencyContactRelation: '',
-          insuranceProvider: '',
-          insuranceNumber: '',
-          allergies: '',
-          medicalConditions: ''
-        })
-        setCurrentStep(1)
-        setErrors({})
-        onPatientAdded()
-        onClose()
+          name: "",
+          birthDate: "",
+          age: "",
+          email: "",
+          phone: "",
+          address: "",
+          emergencyContactName: "",
+          emergencyContactPhone: "",
+          emergencyContactRelation: "",
+          insuranceProvider: "",
+          insuranceNumber: "",
+          allergies: "",
+          medicalConditions: "",
+        });
+        setCurrentStep(1);
+        setErrors({});
+        onPatientAdded();
+        onClose();
       } else {
-        const errorData = await response.json()
-        console.error('Failed to add patient:', errorData)
+        const errorData = await response.json();
+        console.error("Failed to add patient:", errorData);
         // You could show a toast notification here
       }
     } catch (error) {
-      console.error('Error adding patient:', error)
+      console.error("Error adding patient:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(currentStep + 1)
+      setCurrentStep(currentStep + 1);
     }
-  }
+  };
 
   const handleBack = () => {
-    setCurrentStep(currentStep - 1)
-  }
+    setCurrentStep(currentStep - 1);
+  };
 
   const handleClose = () => {
     setFormData({
-      name: '',
-      birthDate: '',
-      age: '',
-      email: '',
-      phone: '',
-      address: '',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      emergencyContactRelation: '',
-      insuranceProvider: '',
-      insuranceNumber: '',
-      allergies: '',
-      medicalConditions: ''
-    })
-    setCurrentStep(1)
-    setErrors({})
-    onClose()
-  }
+      name: "",
+      birthDate: "",
+      age: "",
+      email: "",
+      phone: "",
+      address: "",
+      emergencyContactName: "",
+      emergencyContactPhone: "",
+      emergencyContactRelation: "",
+      insuranceProvider: "",
+      insuranceNumber: "",
+      allergies: "",
+      medicalConditions: "",
+    });
+    setCurrentStep(1);
+    setErrors({});
+    onClose();
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
-  const totalSteps = 3
+  const totalSteps = 3;
 
   return (
     <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4">
@@ -214,16 +251,17 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                 New Patient Registration
               </CardTitle>
               <CardDescription className="text-base text-gray-600 mt-2">
-                Step {currentStep} of {totalSteps}: {
-                  currentStep === 1 ? 'Personal Information' :
-                  currentStep === 2 ? 'Emergency Contact & Insurance' :
-                  'Medical Information'
-                }
+                Step {currentStep} of {totalSteps}:{" "}
+                {currentStep === 1
+                  ? "Personal Information"
+                  : currentStep === 2
+                  ? "Emergency Contact & Insurance"
+                  : "Medical Information"}
               </CardDescription>
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleClose}
               className="h-10 w-10 p-0 hover:bg-red-50 hover:text-red-600"
             >
@@ -239,8 +277,8 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                   key={step}
                   className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold ${
                     step <= currentStep
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-500'
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-500"
                   }`}
                 >
                   {step}
@@ -255,7 +293,7 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent className="p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Step 1: Personal Information */}
@@ -265,8 +303,12 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <User className="w-8 h-8 text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
-                  <p className="text-sm text-gray-600 mt-1">Let's start with the patient's basic information</p>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Personal Information
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Let&apos;s start with the patient&apos;s basic information
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -278,9 +320,13 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                     <Input
                       type="text"
                       value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("name", e.target.value)
+                      }
                       placeholder="Enter patient's full name"
-                      className={`h-12 ${errors.name ? 'border-red-300 focus:border-red-500' : ''}`}
+                      className={`h-12 ${
+                        errors.name ? "border-red-300 focus:border-red-500" : ""
+                      }`}
                     />
                     {errors.name && (
                       <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
@@ -292,16 +338,22 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
 
                   {/* Birth Date */}
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-2 block flex items-center gap-2">
+                    <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
                       Date of Birth *
                     </label>
                     <Input
                       type="date"
                       value={formData.birthDate}
-                      onChange={(e) => handleInputChange('birthDate', e.target.value)}
-                      className={`h-12 ${errors.birthDate ? 'border-red-300 focus:border-red-500' : ''}`}
-                      max={new Date().toISOString().split('T')[0]}
+                      onChange={(e) =>
+                        handleInputChange("birthDate", e.target.value)
+                      }
+                      className={`h-12 ${
+                        errors.birthDate
+                          ? "border-red-300 focus:border-red-500"
+                          : ""
+                      }`}
+                      max={new Date().toISOString().split("T")[0]}
                     />
                     {errors.birthDate && (
                       <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
@@ -319,11 +371,13 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                     <Input
                       type="number"
                       value={formData.age}
-                      onChange={(e) => handleInputChange('age', e.target.value)}
+                      onChange={(e) => handleInputChange("age", e.target.value)}
                       placeholder="Auto-calculated"
                       min="0"
                       max="150"
-                      className={`h-12 bg-gray-50 ${errors.age ? 'border-red-300 focus:border-red-500' : ''}`}
+                      className={`h-12 bg-gray-50 ${
+                        errors.age ? "border-red-300 focus:border-red-500" : ""
+                      }`}
                       readOnly
                     />
                     {errors.age && (
@@ -336,16 +390,22 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
 
                   {/* Email */}
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-2 block flex items-center gap-2">
+                    <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <Mail className="w-4 h-4" />
                       Email Address
                     </label>
                     <Input
                       type="email"
                       value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
                       placeholder="patient@example.com"
-                      className={`h-12 ${errors.email ? 'border-red-300 focus:border-red-500' : ''}`}
+                      className={`h-12 ${
+                        errors.email
+                          ? "border-red-300 focus:border-red-500"
+                          : ""
+                      }`}
                     />
                     {errors.email && (
                       <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
@@ -357,16 +417,22 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
 
                   {/* Phone */}
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-2 block flex items-center gap-2">
+                    <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <Phone className="w-4 h-4" />
                       Phone Number
                     </label>
                     <Input
                       type="tel"
                       value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("phone", e.target.value)
+                      }
                       placeholder="(555) 123-4567"
-                      className={`h-12 ${errors.phone ? 'border-red-300 focus:border-red-500' : ''}`}
+                      className={`h-12 ${
+                        errors.phone
+                          ? "border-red-300 focus:border-red-500"
+                          : ""
+                      }`}
                     />
                     {errors.phone && (
                       <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
@@ -378,14 +444,16 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
 
                   {/* Address */}
                   <div className="md:col-span-2">
-                    <label className="text-sm font-semibold text-gray-700 mb-2 block flex items-center gap-2">
+                    <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
                       Address
                     </label>
                     <Input
                       type="text"
                       value={formData.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("address", e.target.value)
+                      }
                       placeholder="Street address, City, State, ZIP"
                       className="h-12"
                     />
@@ -401,8 +469,12 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                   <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Users className="w-8 h-8 text-red-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Emergency Contact & Insurance</h3>
-                  <p className="text-sm text-gray-600 mt-1">Important contact and insurance information</p>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Emergency Contact & Insurance
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Important contact and insurance information
+                  </p>
                 </div>
 
                 <div className="space-y-6">
@@ -412,7 +484,7 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                       <Shield className="w-5 h-5" />
                       Emergency Contact Information *
                     </h4>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
                         <label className="text-sm font-semibold text-gray-700 mb-2 block">
@@ -421,9 +493,18 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                         <Input
                           type="text"
                           value={formData.emergencyContactName}
-                          onChange={(e) => handleInputChange('emergencyContactName', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "emergencyContactName",
+                              e.target.value
+                            )
+                          }
                           placeholder="Emergency contact's full name"
-                          className={`h-12 ${errors.emergencyContactName ? 'border-red-300 focus:border-red-500' : ''}`}
+                          className={`h-12 ${
+                            errors.emergencyContactName
+                              ? "border-red-300 focus:border-red-500"
+                              : ""
+                          }`}
                         />
                         {errors.emergencyContactName && (
                           <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
@@ -440,9 +521,18 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                         <Input
                           type="tel"
                           value={formData.emergencyContactPhone}
-                          onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "emergencyContactPhone",
+                              e.target.value
+                            )
+                          }
                           placeholder="(555) 123-4567"
-                          className={`h-12 ${errors.emergencyContactPhone ? 'border-red-300 focus:border-red-500' : ''}`}
+                          className={`h-12 ${
+                            errors.emergencyContactPhone
+                              ? "border-red-300 focus:border-red-500"
+                              : ""
+                          }`}
                         />
                         {errors.emergencyContactPhone && (
                           <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
@@ -458,9 +548,16 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                         </label>
                         <select
                           value={formData.emergencyContactRelation}
-                          onChange={(e) => handleInputChange('emergencyContactRelation', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "emergencyContactRelation",
+                              e.target.value
+                            )
+                          }
                           className={`w-full h-12 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
-                            errors.emergencyContactRelation ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'
+                            errors.emergencyContactRelation
+                              ? "border-red-300 focus:border-red-500"
+                              : "border-gray-300 focus:border-blue-500"
                           }`}
                         >
                           <option value="">Select relationship</option>
@@ -487,7 +584,7 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                       <Shield className="w-5 h-5" />
                       Insurance Information
                     </h4>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-semibold text-gray-700 mb-2 block">
@@ -496,7 +593,12 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                         <Input
                           type="text"
                           value={formData.insuranceProvider}
-                          onChange={(e) => handleInputChange('insuranceProvider', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "insuranceProvider",
+                              e.target.value
+                            )
+                          }
                           placeholder="e.g., Blue Cross, Aetna, Medicare"
                           className="h-12"
                         />
@@ -509,7 +611,9 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                         <Input
                           type="text"
                           value={formData.insuranceNumber}
-                          onChange={(e) => handleInputChange('insuranceNumber', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("insuranceNumber", e.target.value)
+                          }
                           placeholder="Insurance ID number"
                           className="h-12"
                         />
@@ -527,8 +631,12 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Heart className="w-8 h-8 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Medical Information</h3>
-                  <p className="text-sm text-gray-600 mt-1">Important medical history and conditions</p>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Medical Information
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Important medical history and conditions
+                  </p>
                 </div>
 
                 <div className="space-y-6">
@@ -540,7 +648,9 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                     </label>
                     <textarea
                       value={formData.allergies}
-                      onChange={(e) => handleInputChange('allergies', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("allergies", e.target.value)
+                      }
                       placeholder="List any known allergies (medications, foods, environmental, etc.)"
                       rows={3}
                       className="w-full rounded-lg border border-yellow-300 bg-white px-3 py-2 text-sm focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/20"
@@ -558,7 +668,9 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                     </label>
                     <textarea
                       value={formData.medicalConditions}
-                      onChange={(e) => handleInputChange('medicalConditions', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("medicalConditions", e.target.value)
+                      }
                       placeholder="List current medical conditions, chronic illnesses, or ongoing treatments"
                       rows={3}
                       className="w-full rounded-lg border border-green-300 bg-white px-3 py-2 text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
@@ -573,11 +685,14 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                     <div className="flex items-start gap-3">
                       <Shield className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" />
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">HIPAA Privacy Notice</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                          HIPAA Privacy Notice
+                        </h4>
                         <p className="text-xs text-gray-600 leading-relaxed">
-                          By submitting this information, you acknowledge that this medical information will be 
-                          protected under HIPAA regulations and will only be used for healthcare purposes by 
-                          authorized medical personnel.
+                          By submitting this information, you acknowledge that
+                          this medical information will be protected under HIPAA
+                          regulations and will only be used for healthcare
+                          purposes by authorized medical personnel.
                         </p>
                       </div>
                     </div>
@@ -599,7 +714,7 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                   Back
                 </Button>
               )}
-              
+
               {currentStep < totalSteps ? (
                 <Button
                   type="button"
@@ -628,12 +743,14 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
                   )}
                 </Button>
               )}
-              
+
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                className={`${currentStep === 1 ? 'flex-1' : ''} h-12 hover:bg-red-50 hover:text-red-600 hover:border-red-200`}
+                className={`${
+                  currentStep === 1 ? "flex-1" : ""
+                } h-12 hover:bg-red-50 hover:text-red-600 hover:border-red-200`}
                 disabled={loading}
               >
                 Cancel
@@ -643,5 +760,5 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

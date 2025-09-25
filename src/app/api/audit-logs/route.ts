@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import type { Session } from "next-auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = (await getServerSession(authOptions)) as Session | null;
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -30,7 +31,16 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get("endDate");
 
     // Build where clause for filtering
-    const where: any = {};
+    const where: {
+      action?: string;
+      resource?: string;
+      userId?: string;
+      success?: boolean;
+      timestamp?: {
+        gte?: Date;
+        lte?: Date;
+      };
+    } = {};
 
     if (action && action !== "ALL") {
       where.action = action;
@@ -121,7 +131,7 @@ export async function GET(request: NextRequest) {
 // Export actions and resources for filtering
 export async function OPTIONS() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = (await getServerSession(authOptions)) as Session | null;
 
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

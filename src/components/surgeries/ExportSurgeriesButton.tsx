@@ -10,7 +10,6 @@ import {
   Table,
   X,
   Calendar,
-  Filter,
   Shield,
   AlertTriangle,
 } from "lucide-react";
@@ -62,8 +61,10 @@ export default function ExportSurgeriesButton({
 
   // Check if user has export permissions
   const canExport =
-    session?.user?.role === "ADMIN" || session?.user?.role === "SURGEON";
+    (session?.user as { role: string } | undefined)?.role === "ADMIN" ||
+    (session?.user as { role: string } | undefined)?.role === "SURGEON";
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const exportToCSV = (data: Surgery[]) => {
     const headers = [
       "Surgery ID",
@@ -118,6 +119,7 @@ export default function ExportSurgeriesButton({
     document.body.removeChild(link);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const exportToPDF = (data: Surgery[]) => {
     // Create a simple HTML table for PDF generation
     const htmlContent = `
@@ -288,7 +290,10 @@ export default function ExportSurgeriesButton({
     }
   };
 
-  const generateSecurePDF = (data: any[], fileName: string) => {
+  const generateSecurePDF = (
+    data: Record<string, unknown>[],
+    fileName: string
+  ) => {
     const doc = new jsPDF();
 
     // Add security watermark
@@ -309,38 +314,47 @@ export default function ExportSurgeriesButton({
     doc.setFontSize(12);
     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 32);
     doc.text(`Total Surgeries: ${data.length}`, 14, 40);
-    doc.text(`User: ${session?.user?.name} (${session?.user?.role})`, 14, 48);
+    doc.text(
+      `User: ${(session?.user as { name: string } | undefined)?.name} (${
+        (session?.user as { role: string } | undefined)?.role
+      })`,
+      14,
+      48
+    );
 
     // Prepare table data based on user role
     const tableData = data.map((surgery) => {
       const baseRow = [
-        surgery.type,
-        surgery.status,
-        new Date(surgery.scheduledAt).toLocaleDateString(),
-        surgery.patient.name,
-        `${surgery.patient.age}y`,
-        surgery.surgeon.name,
+        surgery.type as string,
+        surgery.status as string,
+        new Date(surgery.scheduledAt as string).toLocaleDateString(),
+        (surgery.patient as { name: string }).name,
+        `${(surgery.patient as { age: number }).age}y`,
+        (surgery.surgeon as { name: string }).name,
       ];
 
-      if (session?.user?.role === "ADMIN") {
+      if ((session?.user as { role: string } | undefined)?.role === "ADMIN") {
         return [
           ...baseRow,
-          surgery.operatingRoom || "TBD",
-          surgery.patient.email || "",
-          surgery.notes?.substring(0, 30) || "",
+          (surgery.operatingRoom as string) || "TBD",
+          (surgery.patient as { email?: string }).email || "",
+          (surgery.notes as string)?.substring(0, 30) || "",
         ];
       } else {
         return [
           ...baseRow,
-          surgery.patient.allergies?.substring(0, 20) || "",
-          surgery.notes?.substring(0, 30) || "",
+          (surgery.patient as { allergies?: string }).allergies?.substring(
+            0,
+            20
+          ) || "",
+          (surgery.notes as string)?.substring(0, 30) || "",
         ];
       }
     });
 
     // Add table with role-based headers
     const headers =
-      session?.user?.role === "ADMIN"
+      (session?.user as { role: string } | undefined)?.role === "ADMIN"
         ? [
             "Type",
             "Status",
@@ -481,7 +495,8 @@ export default function ExportSurgeriesButton({
               </div>
 
               {/* Role-based restrictions */}
-              {session?.user?.role === "SURGEON" && (
+              {(session?.user as { role: string } | undefined)?.role ===
+                "SURGEON" && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <div className="flex items-center space-x-2">
                     <AlertTriangle className="w-4 h-4 text-blue-600" />
@@ -510,7 +525,9 @@ export default function ExportSurgeriesButton({
                       type="radio"
                       value="all"
                       checked={exportScope === "all"}
-                      onChange={(e) => setExportScope(e.target.value as any)}
+                      onChange={(e) =>
+                        setExportScope(e.target.value as "all" | "selected")
+                      }
                       className="mr-2"
                     />
                     <span className="text-sm">
@@ -524,7 +541,9 @@ export default function ExportSurgeriesButton({
                         type="radio"
                         value="selected"
                         checked={exportScope === "selected"}
-                        onChange={(e) => setExportScope(e.target.value as any)}
+                        onChange={(e) =>
+                          setExportScope(e.target.value as "all" | "selected")
+                        }
                         className="mr-2"
                       />
                       <span className="text-sm">

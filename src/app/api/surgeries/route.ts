@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import type { Session } from "next-auth";
 import {
   createSurgerySchema,
   calculateAge,
@@ -11,7 +12,6 @@ import {
   getSecurityContext,
   logAuditEvent,
   hasPermission,
-  checkRateLimit,
 } from "@/lib/security";
 
 // GET /api/surgeries - Get all surgeries
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check permissions for surgery reading
-    if (!hasPermission(securityContext.userRole, "read", "surgery")) {
+    if (!hasPermission(securityContext.userRole, "read")) {
       await logAuditEvent(
         "READ",
         "surgery",
@@ -49,11 +49,24 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause with role-based filtering
-    const where: Record<string, any> = {};
+    const where: {
+      status?:
+        | "SCHEDULED"
+        | "IN_PROGRESS"
+        | "COMPLETED"
+        | "CANCELLED"
+        | "POSTPONED";
+      surgeonId?: string;
+    } = {};
 
     // Apply status filter
     if (status && status !== "ALL") {
-      where.status = status as any;
+      where.status = status as
+        | "SCHEDULED"
+        | "IN_PROGRESS"
+        | "COMPLETED"
+        | "CANCELLED"
+        | "POSTPONED";
     }
 
     // Apply role-based filtering
@@ -124,9 +137,9 @@ export async function GET(request: NextRequest) {
       orderBy: { scheduledAt: "asc" },
       skip,
       // take: limit
-    })
+    });
 
-    const total = await prisma.surgery.count()
+    const total = await prisma.surgery.count();
 
     return NextResponse.json({
       surgeries,
@@ -187,7 +200,7 @@ export async function GET(request: NextRequest) {
 // POST /api/surgeries - Create new surgery
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = (await getServerSession(authOptions)) as Session | null;
 
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -200,7 +213,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check permissions for surgery creation
-    if (!hasPermission(securityContext.userRole, "write", "surgery")) {
+    if (!hasPermission(securityContext.userRole, "write")) {
       await logAuditEvent(
         "CREATE",
         "surgery",
@@ -223,7 +236,7 @@ export async function POST(request: NextRequest) {
     if (body.patient && !patientId) {
       // Creating new patient as part of surgery scheduling
       const patientData = sanitizePatientData(body.patient);
-      const birthDate = new Date(patientData.birthDate);
+      const birthDate = new Date(body.patient.birthDate);
       const age = calculateAge(birthDate);
 
       const patient = await prisma.patient.create({

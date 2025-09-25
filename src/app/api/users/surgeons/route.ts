@@ -1,40 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { prisma } from '@/lib/prisma'
-import { authOptions } from '@/lib/auth'
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { prisma } from "@/lib/prisma";
+import { authOptions } from "@/lib/auth";
 
 // GET /api/users/surgeons - Get all surgeons
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    
+    const session = await getServerSession(authOptions);
+
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const surgeons = await prisma.user.findMany({
       where: {
-        OR: [
-          { role: 'SURGEON' },
-          { role: 'ADMIN' }
-        ]
+        OR: [{ role: "SURGEON" }, { role: "ADMIN" }],
       },
       select: {
         id: true,
         name: true,
         email: true,
-        role: true
+        role: true,
       },
-      orderBy: { name: 'asc' }
-    })
+      orderBy: { name: "asc" },
+    });
 
-    return NextResponse.json(surgeons)
+    return NextResponse.json(surgeons);
   } catch (error) {
-    console.error('Get surgeons error:', error)
+    console.error("Get surgeons error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    )
+    );
   }
 }
-

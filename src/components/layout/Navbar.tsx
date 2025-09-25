@@ -33,7 +33,7 @@ export default function Navbar() {
   const navigation: NavigationItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: Calendar },
     { name: "Patients", href: "/patients", icon: Users },
-    ...(session?.user?.role === "ADMIN"
+    ...((session?.user as { role: string } | undefined)?.role === "ADMIN"
       ? [
           {
             name: "Audit Logs",
@@ -135,15 +135,19 @@ export default function Navbar() {
               >
                 <div className="w-9 h-9 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-blue-100 group-hover:scale-102 transition-all duration-200">
                   <span className="text-sm font-semibold text-white">
-                    {session?.user?.name?.charAt(0)?.toUpperCase()}
+                    {(session?.user as { name: string } | undefined)?.name
+                      ?.charAt(0)
+                      ?.toUpperCase()}
                   </span>
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-medium text-gray-900 group-hover:text-gray-700">
-                    {session?.user?.name}
+                    {(session?.user as { name: string } | undefined)?.name}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
-                    {session?.user?.role?.toLowerCase()}
+                    {(
+                      session?.user as { role: string } | undefined
+                    )?.role?.toLowerCase()}
                   </p>
                 </div>
                 <ChevronDown
@@ -160,18 +164,28 @@ export default function Navbar() {
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
                         <span className="text-sm font-semibold text-white">
-                          {session?.user?.name?.charAt(0)?.toUpperCase()}
+                          {(session?.user as { name: string } | undefined)?.name
+                            ?.charAt(0)
+                            ?.toUpperCase()}
                         </span>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900">
-                          {session?.user?.name}
+                          {
+                            (session?.user as { name: string } | undefined)
+                              ?.name
+                          }
                         </p>
                         <p className="text-xs text-gray-500">
-                          {session?.user?.email}
+                          {
+                            (session?.user as { email: string } | undefined)
+                              ?.email
+                          }
                         </p>
                         <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full capitalize">
-                          {session?.user?.role?.toLowerCase()}
+                          {(
+                            session?.user as { role: string } | undefined
+                          )?.role?.toLowerCase()}
                         </span>
                       </div>
                     </div>
@@ -209,7 +223,9 @@ export default function Navbar() {
           <div className="sm:hidden flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
               <span className="text-xs font-semibold text-white">
-                {session?.user?.name?.charAt(0)?.toUpperCase()}
+                {(session?.user as { name: string } | undefined)?.name
+                  ?.charAt(0)
+                  ?.toUpperCase()}
               </span>
             </div>
             <button
@@ -279,18 +295,22 @@ export default function Navbar() {
             <div className="flex items-center space-x-3 px-4 py-3 bg-gray-50/80 rounded-xl">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-sm">
                 <span className="text-sm font-semibold text-white">
-                  {session?.user?.name?.charAt(0)?.toUpperCase()}
+                  {(session?.user as { name: string } | undefined)?.name
+                    ?.charAt(0)
+                    ?.toUpperCase()}
                 </span>
               </div>
               <div className="flex-1">
                 <div className="text-base font-medium text-gray-900">
-                  {session?.user?.name}
+                  {(session?.user as { name: string } | undefined)?.name}
                 </div>
                 <div className="text-sm text-gray-500">
-                  {session?.user?.email}
+                  {(session?.user as { email: string } | undefined)?.email}
                 </div>
                 <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full capitalize">
-                  {session?.user?.role?.toLowerCase()}
+                  {(
+                    session?.user as { role: string } | undefined
+                  )?.role?.toLowerCase()}
                 </span>
               </div>
             </div>

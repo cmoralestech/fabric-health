@@ -7,19 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Pagination } from "@/components/ui/Pagination";
 import { AppFooter } from "@/components/layout/Footer";
 import {
   Shield,
-  Search,
   Filter,
   Download,
   Eye,
   AlertTriangle,
   CheckCircle,
   XCircle,
-  Calendar,
   User,
   Activity,
   Database,
@@ -99,7 +96,7 @@ export default function AuditLogsPage() {
       return;
     }
 
-    if (session.user.role !== "ADMIN") {
+    if ((session.user as { role: string }).role !== "ADMIN") {
       router.push("/dashboard");
       return;
     }
@@ -120,7 +117,7 @@ export default function AuditLogsPage() {
       }
     };
 
-    if (session?.user?.role === "ADMIN") {
+    if ((session?.user as { role: string } | undefined)?.role === "ADMIN") {
       fetchFilterOptions();
     }
   }, [session]);
@@ -128,7 +125,8 @@ export default function AuditLogsPage() {
   // Fetch audit logs
   useEffect(() => {
     const fetchAuditLogs = async () => {
-      if (session?.user?.role !== "ADMIN") return;
+      if ((session?.user as { role: string } | undefined)?.role !== "ADMIN")
+        return;
 
       setLoading(true);
       try {
@@ -323,7 +321,7 @@ export default function AuditLogsPage() {
     );
   }
 
-  if (!session?.user || session.user.role !== "ADMIN") {
+  if (!session?.user || (session.user as { role: string }).role !== "ADMIN") {
     return null; // Will redirect
   }
 

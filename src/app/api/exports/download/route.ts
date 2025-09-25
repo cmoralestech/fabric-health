@@ -3,12 +3,13 @@ import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { logAuditEvent, getSecurityContext } from "@/lib/security";
+import type { Session } from "next-auth";
 
 // Secure download endpoint with token validation
 export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as Session | null;
 
+  try {
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -25,7 +26,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate and decode export token
-    let tokenData;
+    let tokenData: {
+      expiresAt: string;
+      userId: string;
+      filters?: Record<string, unknown>;
+    };
     try {
       tokenData = JSON.parse(Buffer.from(token, "base64").toString());
     } catch {
@@ -175,8 +180,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function fetchSurgeriesForExport(user: any) {
-  let whereClause: any = {};
+async function fetchSurgeriesForExport(user: { id: string; role: string }) {
+  const whereClause: {
+    surgeonId?: string;
+  } = {};
 
   if (user.role === "SURGEON") {
     whereClause.surgeonId = user.id;
@@ -239,22 +246,26 @@ function getRoleBasedPatientFields(role: string) {
   }
 }
 
-function maskSurgeryForExport(surgery: any, role: string) {
+function maskSurgeryForExport(surgery: Record<string, unknown>, role: string) {
   const masked = { ...surgery };
 
   if (role !== "ADMIN") {
-    if (masked.patient.email) {
-      masked.patient.email = maskEmail(masked.patient.email);
+    const patient = masked.patient as Record<string, unknown>;
+    if (patient?.email) {
+      patient.email = maskEmail(patient.email as string);
     }
-    if (masked.patient.phone) {
-      masked.patient.phone = maskPhone(masked.patient.phone);
+    if (patient?.phone) {
+      patient.phone = maskPhone(patient.phone as string);
     }
   }
 
   return masked;
 }
 
-function generateCSV(surgeries: any[], role: string): string {
+function generateCSV(
+  surgeries: Record<string, unknown>[],
+  role: string
+): string {
   const headers = getCSVHeaders(role);
 
   const csvContent = [
@@ -301,37 +312,45 @@ function getCSVHeaders(role: string): string[] {
   return baseHeaders;
 }
 
-function getCSVRow(surgery: any, role: string): string[] {
+function getCSVRow(surgery: Record<string, unknown>, role: string): string[] {
+  const patient = surgery.patient as Record<string, unknown>;
+  const surgeon = surgery.surgeon as Record<string, unknown>;
+
   const baseRow = [
-    surgery.type,
-    surgery.status,
-    new Date(surgery.scheduledAt).toLocaleDateString(),
-    surgery.patient.name,
-    surgery.patient.age.toString(),
-    surgery.surgeon.name,
+    surgery.type as string,
+    surgery.status as string,
+    new Date(surgery.scheduledAt as string).toLocaleDateString(),
+    patient.name as string,
+    (patient.age as number).toString(),
+    surgeon.name as string,
   ];
 
   if (role === "ADMIN") {
     return [
       ...baseRow,
-      surgery.operatingRoom || "",
-      surgery.patient.email || "",
-      surgery.patient.phone || "",
-      surgery.patient.allergies || "",
-      surgery.patient.medicalConditions || "",
-      surgery.notes || "",
-      surgery.scheduledBy.name,
+      (surgery.operatingRoom as string) || "",
+      (patient.email as string) || "",
+      (patient.phone as string) || "",
+      (patient.allergies as string) || "",
+      (patient.medicalConditions as string) || "",
+      (surgery.notes as string) || "",
+      (surgery.scheduledBy as Record<string, unknown>).name as string,
     ];
   } else if (role === "SURGEON") {
     return [
       ...baseRow,
-      surgery.patient.allergies || "",
-      surgery.patient.medicalConditions || "",
-      surgery.notes || "",
+      (patient.allergies as string) || "",
+      (patient.medicalConditions as string) || "",
+      (surgery.notes as string) || "",
+    ];
+  } else {
+    return [
+      ...baseRow,
+      "[REDACTED]", // allergies
+      "[REDACTED]", // medical conditions
+      (surgery.notes as string) || "",
     ];
   }
-
-  return baseRow;
 }
 
 function maskEmail(email: string): string {

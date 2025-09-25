@@ -335,7 +335,8 @@ export default function CompliancePage() {
                     <li className="flex items-start">
                       <Lock className="w-4 h-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
                       <span>
-                        Minimum necessary principle - only access what's needed
+                        Minimum necessary principle - only access what&apos;s
+                        needed
                       </span>
                     </li>
                     <li className="flex items-start">
@@ -489,7 +490,7 @@ export default function CompliancePage() {
           </CardContent>
         </Card>
 
-        <SimpleFooter 
+        <SimpleFooter
           lastUpdated={new Date().toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",

@@ -174,7 +174,8 @@ export default function TermsOfServicePage() {
                   • Downloading or exporting data without proper authorization
                 </li>
                 <li>
-                  • Interfering with system operations or other users' access
+                  • Interfering with system operations or other users&apos;
+                  access
                 </li>
               </ul>
             </div>

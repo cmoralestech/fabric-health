@@ -36,7 +36,7 @@ interface Surgery {
 }
 
 export default function Dashboard() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [showScheduleForm, setShowScheduleForm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedSurgery, setSelectedSurgery] = useState<Surgery | null>(null);
