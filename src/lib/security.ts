@@ -83,7 +83,7 @@ function getClientIP(request: NextRequest): string {
     return realIP;
   }
 
-  return request.ip || "Unknown";
+  return "Unknown";
 }
 
 // Role-based access control for HIPAA

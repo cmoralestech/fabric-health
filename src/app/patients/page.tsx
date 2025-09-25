@@ -363,7 +363,7 @@ export default function PatientsPage() {
           {/* Patient Results */}
           {loading ? (
             <div className="min-h-[400px] flex items-center justify-center">
-              <div className="text-center">
+              <div className="flex flex-col items-center">
                 <LoadingSpinner size="lg" className="mb-4" />
                 <p className="text-gray-600">Searching patients...</p>
               </div>

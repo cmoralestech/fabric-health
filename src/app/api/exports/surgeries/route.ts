@@ -10,8 +10,10 @@ import {
 
 // Secure export endpoint for surgery data
 export async function POST(request: NextRequest) {
+  
+  const session = await getServerSession(authOptions);
+
   try {
-    const session = await getServerSession(authOptions);
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
