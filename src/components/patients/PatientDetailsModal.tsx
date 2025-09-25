@@ -346,7 +346,7 @@ export default function PatientDetailsModal({
             setSelectedSurgery(null)
           }}
           surgery={selectedSurgery}
-          onSuccess={handleSurgeryUpdated}
+          onSurgeryUpdated={handleSurgeryUpdated}
         />
       )}
     </div>

@@ -29,15 +29,28 @@ interface ScheduleSurgeryFormProps {
   onSuccess: () => void
 }
 
-const combinedSchema = z.object({
-  surgery: createSurgerySchema.omit({ patientId: true }).extend({
-    patientId: z.string().optional()
-  }),
-  patient: createPatientSchema.optional(),
-  isNewPatient: z.boolean()
-})
+// Schema when it's a new patient
+const newPatientSchema = z.object({
+  isNewPatient: z.literal(true),
+  surgery: createSurgerySchema.omit({ patientId: true }),
+  patient: createPatientSchema, // required
+});
 
-type FormData = z.infer<typeof combinedSchema>
+// Schema when it's NOT a new patient
+const existingPatientSchema = z.object({
+  isNewPatient: z.literal(false),
+  surgery: createSurgerySchema.omit({ patientId: true }).extend({
+    patientId: z.string(), // must provide an existing patientId
+  })
+});
+
+// Final combined schema
+const combinedSchema = z.discriminatedUnion("isNewPatient", [
+  newPatientSchema,
+  existingPatientSchema,
+]);
+
+type FormData = z.infer<typeof combinedSchema>;
 
 export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurgeryFormProps) {
   const [patients, setPatients] = useState<Patient[]>([])
@@ -61,6 +74,12 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
         type: surgeryTypes[0],
         surgeonId: '',
         notes: ''
+      },
+      patient: {
+        name: '',
+        birthDate: '',
+        phone: '',
+        email: ''
       }
     }
   })
@@ -150,7 +169,7 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit, (errs) => console.log('RHF errors:', errs))} className="space-y-6">
             {/* Patient Selection */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-black">Patient Information</h3>
@@ -184,24 +203,24 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                   <Input
                     label="Patient Name *"
                     {...register('patient.name')}
-                    error={errors.patient?.name?.message}
+                    error={(errors.patient as any)?.name?.message}
                   />
                   <Input
                     label="Birth Date *"
                     type="date"
                     {...register('patient.birthDate')}
-                    error={errors.patient?.birthDate?.message}
+                    error={(errors.patient as any)?.birthDate?.message}
                   />
                   <Input
                     label="Email"
                     type="email"
                     {...register('patient.email')}
-                    error={errors.patient?.email?.message}
+                    error={(errors.patient as any)?.email?.message}
                   />
                   <Input
                     label="Phone"
                     {...register('patient.phone')}
-                    error={errors.patient?.phone?.message}
+                    error={(errors.patient as any)?.phone?.message}
                   />
                 </div>
               )}
@@ -222,8 +241,8 @@ export default function ScheduleSurgeryForm({ onClose, onSuccess }: ScheduleSurg
                       </option>
                     ))}
                   </select>
-                  {errors.surgery?.patientId && (
-                    <p className="text-sm text-red-600 mt-1">{errors.surgery.patientId.message}</p>
+                  {(errors.surgery as any)?.patientId && (
+                    <p className="text-sm text-red-600 mt-1">{(errors.surgery as any).patientId.message}</p>
                   )}
                 </div>
               )}

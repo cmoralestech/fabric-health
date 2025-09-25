@@ -132,11 +132,13 @@ export default function ScheduleSurgeryModal({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          patientId: formData.patientId,
-          surgeonId: formData.surgeonId,
-          scheduledAt: formData.scheduledAt,
-          type: formData.type,
-          notes: formData.notes.trim() || undefined,
+          surgery: {
+            patientId: patient?.id,
+            surgeonId: formData.surgeonId,
+            scheduledAt: formData.scheduledAt,
+            type: formData.type,
+            notes: formData.notes.trim() || undefined
+          }
         }),
       })
 
@@ -224,7 +226,7 @@ export default function ScheduleSurgeryModal({
               <select
                 value={formData.surgeonId}
                 onChange={(e) => handleInputChange('surgeonId', e.target.value)}
-                className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
+                className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black ${
                   errors.surgeonId ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'
                 }`}
               >
@@ -267,7 +269,7 @@ export default function ScheduleSurgeryModal({
               <select
                 value={formData.type}
                 onChange={(e) => handleInputChange('type', e.target.value)}
-                className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
+                className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black ${
                   errors.type ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'
                 }`}
               >
@@ -294,7 +296,7 @@ export default function ScheduleSurgeryModal({
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 placeholder="Additional notes or special instructions..."
                 rows={3}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none text-black"
               />
             </div>
 

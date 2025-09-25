@@ -7,7 +7,7 @@ import { updateSurgerySchema } from '@/lib/validations'
 // GET /api/surgeries/[id] - Get single surgery
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -16,8 +16,9 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const surgery = await prisma.surgery.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         patient: true,
         surgeon: {
@@ -46,7 +47,7 @@ export async function GET(
 // PATCH /api/surgeries/[id] - Update surgery
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -55,12 +56,13 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const validatedData = updateSurgerySchema.parse(body)
 
     // Check if surgery exists
     const existingSurgery = await prisma.surgery.findUnique({
-      where: { id: params.id }
+      where: { id: id }
     })
 
     if (!existingSurgery) {
@@ -75,7 +77,7 @@ export async function PATCH(
     }
 
     const surgery = await prisma.surgery.update({
-      where: { id: params.id },
+      where: { id: id },
       data: updateData,
       include: {
         patient: true,
@@ -113,7 +115,7 @@ export async function PATCH(
 // DELETE /api/surgeries/[id] - Cancel/Delete surgery
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -122,9 +124,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
+
     // Check if surgery exists
     const existingSurgery = await prisma.surgery.findUnique({
-      where: { id: params.id }
+      where: { id: id }
     })
 
     if (!existingSurgery) {
@@ -133,7 +137,7 @@ export async function DELETE(
 
     // Update status to CANCELLED instead of deleting
     const surgery = await prisma.surgery.update({
-      where: { id: params.id },
+      where: { id: id },
       data: { status: 'CANCELLED' },
       include: {
         patient: true,

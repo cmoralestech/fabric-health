@@ -12,13 +12,6 @@ interface Surgery {
   type: string
   status: string
   notes?: string
-  patient: {
-    id: string
-    name: string
-    age: number
-    email?: string
-    phone?: string
-  }
   surgeon: {
     id: string
     name: string
@@ -237,7 +230,7 @@ export default function EditSurgeryModal({
               <select
                 value={formData.surgeonId}
                 onChange={(e) => handleInputChange('surgeonId', e.target.value)}
-                className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
+                className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black ${
                   errors.surgeonId ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'
                 }`}
               >
@@ -279,7 +272,7 @@ export default function EditSurgeryModal({
               <select
                 value={formData.type}
                 onChange={(e) => handleInputChange('type', e.target.value)}
-                className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
+                className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black ${
                   errors.type ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'
                 }`}
               >
@@ -303,7 +296,7 @@ export default function EditSurgeryModal({
               <select
                 value={formData.status}
                 onChange={(e) => handleInputChange('status', e.target.value)}
-                className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${
+                className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black ${
                   errors.status ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'
                 }`}
               >
@@ -330,7 +323,7 @@ export default function EditSurgeryModal({
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 placeholder="Additional notes or special instructions..."
                 rows={3}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none text-black"
               />
             </div>
 
