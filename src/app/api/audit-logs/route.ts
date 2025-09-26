@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
         },
       },
       _count: {
-        success: true,
+        _all: true,
       },
     });
 

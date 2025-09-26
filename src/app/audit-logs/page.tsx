@@ -51,7 +51,7 @@ interface AuditLogResponse {
     hasPreviousPage: boolean;
   };
   summaryStats: Array<{ action: string; _count: { action: number } }>;
-  failureStats: Array<{ success: boolean; _count: { success: number } }>;
+  failureStats: Array<{ success: boolean; _count: { _all: number } }>;
 }
 
 export default function AuditLogsPage() {
@@ -371,9 +371,9 @@ export default function AuditLogsPage() {
                     {failureStats.length > 0
                       ? Math.round(
                           ((failureStats.find((s) => s.success)?._count
-                            .success || 0) /
+                            ._all || 0) /
                             failureStats.reduce(
-                              (sum, s) => sum + s._count.success,
+                              (sum, s) => sum + s._count._all,
                               0
                             )) *
                             100
@@ -393,7 +393,7 @@ export default function AuditLogsPage() {
                 <div>
                   <p className="text-sm text-gray-600">Failed Events</p>
                   <p className="text-2xl font-bold text-red-600">
-                    {failureStats.find((s) => !s.success)?._count.success || 0}
+                    {failureStats.find((s) => !s.success)?._count._all || 0}
                   </p>
                 </div>
                 <AlertTriangle className="w-8 h-8 text-red-600" />
