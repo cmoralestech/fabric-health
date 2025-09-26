@@ -11,6 +11,7 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import SurgeryTableView from "./SurgeryTableView";
 import ExportSurgeriesButton from "./ExportSurgeriesButton";
 import { formatDate, formatTime } from "@/lib/utils";
+import { useToastContext } from "@/contexts/ToastContext";
 import {
   Calendar,
   Clock,
@@ -75,6 +76,7 @@ export default function SurgeryList({
   onScheduleNew,
   onEditSurgery,
 }: SurgeryListProps) {
+  const { showSuccess, showError } = useToastContext();
   const [surgeries, setSurgeries] = useState<Surgery[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("ALL");
@@ -399,12 +401,19 @@ export default function SurgeryList({
       );
 
       if (response.ok) {
+        showSuccess(
+          "Surgery Cancelled",
+          "The surgery has been cancelled successfully"
+        );
         fetchSurgeries(); // Refresh the list
         setShowCancelModal(false);
         setSelectedSurgeryForAction(null);
+      } else {
+        showError("Failed to Cancel Surgery", "Please try again");
       }
     } catch (error) {
       console.error("Error cancelling surgery:", error);
+      showError("Network Error", "Unable to cancel surgery. Please try again.");
     } finally {
       setIsActionLoading(false);
     }
@@ -432,12 +441,22 @@ export default function SurgeryList({
       );
 
       if (response.ok) {
+        showSuccess(
+          "Surgery Completed",
+          "The surgery has been marked as completed"
+        );
         fetchSurgeries(); // Refresh the list
         setShowCompleteModal(false);
         setSelectedSurgeryForAction(null);
+      } else {
+        showError("Failed to Complete Surgery", "Please try again");
       }
     } catch (error) {
       console.error("Error completing surgery:", error);
+      showError(
+        "Network Error",
+        "Unable to complete surgery. Please try again."
+      );
     } finally {
       setIsActionLoading(false);
     }

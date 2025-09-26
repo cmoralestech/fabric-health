@@ -13,6 +13,7 @@ import {
   surgeryTypes,
 } from "@/lib/validations";
 import { X } from "lucide-react";
+import { useToastContext } from "@/contexts/ToastContext";
 
 interface Patient {
   id: string;
@@ -60,6 +61,7 @@ export default function ScheduleSurgeryForm({
   onClose,
   onSuccess,
 }: ScheduleSurgeryFormProps) {
+  const { showSuccess, showError } = useToastContext();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [surgeons, setSurgeons] = useState<Surgeon[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -135,15 +137,25 @@ export default function ScheduleSurgeryForm({
       });
 
       if (response.ok) {
+        showSuccess(
+          "Surgery Scheduled Successfully",
+          "The surgery has been added to the schedule"
+        );
         onSuccess();
         onClose();
       } else {
         const errorData = await response.json();
-        alert(errorData.error || "Failed to schedule surgery");
+        showError(
+          "Failed to Schedule Surgery",
+          errorData.error || "Please check your input and try again"
+        );
       }
     } catch (error) {
       console.error("Error scheduling surgery:", error);
-      alert("Failed to schedule surgery");
+      showError(
+        "Network Error",
+        "Unable to connect to the server. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }

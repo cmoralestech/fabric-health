@@ -1,87 +1,114 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { X, Calendar, User, Clock, FileText, Save, Loader2, Edit } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import {
+  X,
+  Calendar,
+  User,
+  Clock,
+  FileText,
+  Save,
+  Loader2,
+  Edit,
+} from "lucide-react";
+import { useToastContext } from "@/contexts/ToastContext";
 
 interface Surgery {
-  id: string
-  scheduledAt: string
-  type: string
-  status: string
-  notes?: string
+  id: string;
+  scheduledAt: string;
+  type: string;
+  status: string;
+  notes?: string;
   surgeon: {
-    id: string
-    name: string
-    email: string
-  }
+    id: string;
+    name: string;
+    email: string;
+  };
   scheduledBy: {
-    id: string
-    name: string
-    email: string
-  }
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 interface Surgeon {
-  id: string
-  name: string
-  email: string
+  id: string;
+  name: string;
+  email: string;
 }
 
 interface EditSurgeryModalProps {
-  isOpen: boolean
-  onClose: () => void
-  surgery: Surgery | null
-  onSurgeryUpdated: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  surgery: Surgery | null;
+  onSurgeryUpdated: () => void;
 }
 
 interface SurgeryFormData {
-  surgeonId: string
-  scheduledAt: string
-  type: string
-  status: string
-  notes: string
+  surgeonId: string;
+  scheduledAt: string;
+  type: string;
+  status: string;
+  notes: string;
 }
 
 const surgeryTypes = [
-  'Appendectomy',
-  'Cholecystectomy',
-  'Hernia Repair',
-  'Knee Replacement',
-  'Hip Replacement',
-  'Cataract Surgery',
-  'Coronary Bypass',
-  'Gallbladder Removal',
-  'Tonsillectomy',
-  'Other'
-]
+  "Appendectomy",
+  "Cholecystectomy",
+  "Hernia Repair",
+  "Knee Replacement",
+  "Hip Replacement",
+  "Cataract Surgery",
+  "Coronary Bypass",
+  "Gallbladder Removal",
+  "Tonsillectomy",
+  "Other",
+];
 
 const surgeryStatuses = [
-  { value: 'SCHEDULED', label: 'Scheduled', color: 'text-blue-700 bg-blue-100' },
-  { value: 'IN_PROGRESS', label: 'In Progress', color: 'text-yellow-700 bg-yellow-100' },
-  { value: 'COMPLETED', label: 'Completed', color: 'text-green-700 bg-green-100' },
-  { value: 'CANCELLED', label: 'Cancelled', color: 'text-red-700 bg-red-100' },
-  { value: 'POSTPONED', label: 'Postponed', color: 'text-purple-700 bg-purple-100' }
-]
+  {
+    value: "SCHEDULED",
+    label: "Scheduled",
+    color: "text-blue-700 bg-blue-100",
+  },
+  {
+    value: "IN_PROGRESS",
+    label: "In Progress",
+    color: "text-yellow-700 bg-yellow-100",
+  },
+  {
+    value: "COMPLETED",
+    label: "Completed",
+    color: "text-green-700 bg-green-100",
+  },
+  { value: "CANCELLED", label: "Cancelled", color: "text-red-700 bg-red-100" },
+  {
+    value: "POSTPONED",
+    label: "Postponed",
+    color: "text-purple-700 bg-purple-100",
+  },
+];
 
-export default function EditSurgeryModal({ 
-  isOpen, 
-  onClose, 
+export default function EditSurgeryModal({
+  isOpen,
+  onClose,
   surgery,
-  onSurgeryUpdated 
+  onSurgeryUpdated,
 }: EditSurgeryModalProps) {
+  const { showSuccess, showError } = useToastContext();
   const [formData, setFormData] = useState<SurgeryFormData>({
-    surgeonId: '',
-    scheduledAt: '',
-    type: '',
-    status: '',
-    notes: ''
-  })
-  const [surgeons, setSurgeons] = useState<Surgeon[]>([])
-  const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState<Partial<SurgeryFormData>>({})
+    surgeonId: "",
+    scheduledAt: "",
+    type: "",
+    status: "",
+    notes: "",
+  });
+  const [surgeons, setSurgeons] = useState<Surgeon[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Partial<SurgeryFormData>>({});
 
   // Populate form when surgery changes
   useEffect(() => {
@@ -91,71 +118,79 @@ export default function EditSurgeryModal({
         scheduledAt: new Date(surgery.scheduledAt).toISOString().slice(0, 16),
         type: surgery.type,
         status: surgery.status,
-        notes: surgery.notes || ''
-      })
+        notes: surgery.notes || "",
+      });
     }
-  }, [surgery])
+  }, [surgery]);
 
   // Fetch surgeons when modal opens
   useEffect(() => {
     if (isOpen) {
-      fetchSurgeons()
+      fetchSurgeons();
     }
-  }, [isOpen])
+  }, [isOpen]); // fetchSurgeons is stable, no need to include
 
   const fetchSurgeons = async () => {
     try {
-      const response = await fetch('/api/users/surgeons')
+      const response = await fetch("/api/users/surgeons");
       if (response.ok) {
-        const data = await response.json()
-        setSurgeons(data)
+        const data = await response.json();
+        setSurgeons(data);
+      } else {
+        showError("Failed to Load Surgeons", "Unable to load surgeon list");
       }
     } catch (error) {
-      console.error('Error fetching surgeons:', error)
+      console.error("Error fetching surgeons:", error);
+      showError(
+        "Network Error",
+        "Unable to load surgeons. Please refresh the page."
+      );
     }
-  }
+  };
 
   const handleInputChange = (field: keyof SurgeryFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors: Partial<SurgeryFormData> = {}
-    
-    if (!formData.surgeonId) newErrors.surgeonId = 'Surgeon is required'
-    if (!formData.scheduledAt) newErrors.scheduledAt = 'Date and time are required'
-    if (!formData.type) newErrors.type = 'Surgery type is required'
-    if (!formData.status) newErrors.status = 'Status is required'
-    
+    const newErrors: Partial<SurgeryFormData> = {};
+
+    if (!formData.surgeonId) newErrors.surgeonId = "Surgeon is required";
+    if (!formData.scheduledAt)
+      newErrors.scheduledAt = "Date and time are required";
+    if (!formData.type) newErrors.type = "Surgery type is required";
+    if (!formData.status) newErrors.status = "Status is required";
+
     // Validate future date only for scheduled surgeries
-    if (formData.scheduledAt && formData.status === 'SCHEDULED') {
-      const scheduledDate = new Date(formData.scheduledAt)
-      const now = new Date()
+    if (formData.scheduledAt && formData.status === "SCHEDULED") {
+      const scheduledDate = new Date(formData.scheduledAt);
+      const now = new Date();
       if (scheduledDate <= now) {
-        newErrors.scheduledAt = 'Scheduled surgeries must be set for a future date and time'
+        newErrors.scheduledAt =
+          "Scheduled surgeries must be set for a future date and time";
       }
     }
-    
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!validateForm() || !surgery) return
-    
-    setLoading(true)
+    e.preventDefault();
+
+    if (!validateForm() || !surgery) return;
+
+    setLoading(true);
     try {
       const response = await fetch(`/api/surgeries/${surgery.id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           surgeonId: formData.surgeonId,
@@ -164,30 +199,42 @@ export default function EditSurgeryModal({
           status: formData.status,
           notes: formData.notes.trim() || undefined,
         }),
-      })
+      });
 
       if (response.ok) {
-        onSurgeryUpdated()
-        onClose()
+        showSuccess(
+          "Surgery Updated Successfully",
+          "The surgery details have been saved"
+        );
+        onSurgeryUpdated();
+        onClose();
       } else {
-        const errorData = await response.json()
-        console.error('Failed to update surgery:', errorData)
+        const errorData = await response.json();
+        console.error("Failed to update surgery:", errorData);
+        showError(
+          "Failed to Update Surgery",
+          errorData.error || "Please check your input and try again"
+        );
       }
     } catch (error) {
-      console.error('Error updating surgery:', error)
+      console.error("Error updating surgery:", error);
+      showError(
+        "Network Error",
+        "Unable to connect to the server. Please try again."
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleClose = () => {
-    setErrors({})
-    onClose()
-  }
+    setErrors({});
+    onClose();
+  };
 
-  if (!isOpen || !surgery) return null
+  if (!isOpen || !surgery) return null;
 
-  const currentStatus = surgeryStatuses.find(s => s.value === surgery.status)
+  const currentStatus = surgeryStatuses.find((s) => s.value === surgery.status);
 
   return (
     <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4">
@@ -197,27 +244,33 @@ export default function EditSurgeryModal({
             <Edit className="w-5 h-5 text-blue-600" />
             Edit Surgery
           </CardTitle>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleClose}
             className="h-8 w-8 p-0"
           >
             <X className="w-4 h-4" />
           </Button>
         </CardHeader>
-        
+
         <CardContent>
           {/* Surgery Info */}
           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold text-gray-900">{surgery.type}</h3>
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${currentStatus?.color}`}>
+              <span
+                className={`px-2 py-1 text-xs font-medium rounded-full ${currentStatus?.color}`}
+              >
                 {currentStatus?.label}
               </span>
             </div>
-            <p className="text-sm text-gray-600">Surgery ID: {surgery.id.slice(-8)}</p>
-            <p className="text-sm text-gray-600">Scheduled by: {surgery.scheduledBy.name}</p>
+            <p className="text-sm text-gray-600">
+              Surgery ID: {surgery.id.slice(-8)}
+            </p>
+            <p className="text-sm text-gray-600">
+              Scheduled by: {surgery.scheduledBy.name}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -229,13 +282,15 @@ export default function EditSurgeryModal({
               </label>
               <select
                 value={formData.surgeonId}
-                onChange={(e) => handleInputChange('surgeonId', e.target.value)}
+                onChange={(e) => handleInputChange("surgeonId", e.target.value)}
                 className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black ${
-                  errors.surgeonId ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'
+                  errors.surgeonId
+                    ? "border-red-300 focus:border-red-500"
+                    : "border-gray-300 focus:border-blue-500"
                 }`}
               >
                 <option value="">Select a surgeon</option>
-                {surgeons.map(surgeon => (
+                {surgeons.map((surgeon) => (
                   <option key={surgeon.id} value={surgeon.id}>
                     {surgeon.name}
                   </option>
@@ -255,8 +310,14 @@ export default function EditSurgeryModal({
               <Input
                 type="datetime-local"
                 value={formData.scheduledAt}
-                onChange={(e) => handleInputChange('scheduledAt', e.target.value)}
-                className={errors.scheduledAt ? 'border-red-300 focus:border-red-500' : ''}
+                onChange={(e) =>
+                  handleInputChange("scheduledAt", e.target.value)
+                }
+                className={
+                  errors.scheduledAt
+                    ? "border-red-300 focus:border-red-500"
+                    : ""
+                }
               />
               {errors.scheduledAt && (
                 <p className="text-sm text-red-600">{errors.scheduledAt}</p>
@@ -271,13 +332,15 @@ export default function EditSurgeryModal({
               </label>
               <select
                 value={formData.type}
-                onChange={(e) => handleInputChange('type', e.target.value)}
+                onChange={(e) => handleInputChange("type", e.target.value)}
                 className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black ${
-                  errors.type ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'
+                  errors.type
+                    ? "border-red-300 focus:border-red-500"
+                    : "border-gray-300 focus:border-blue-500"
                 }`}
               >
                 <option value="">Select surgery type</option>
-                {surgeryTypes.map(type => (
+                {surgeryTypes.map((type) => (
                   <option key={type} value={type}>
                     {type}
                   </option>
@@ -295,13 +358,15 @@ export default function EditSurgeryModal({
               </label>
               <select
                 value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
+                onChange={(e) => handleInputChange("status", e.target.value)}
                 className={`w-full h-10 rounded-lg border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-black ${
-                  errors.status ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'
+                  errors.status
+                    ? "border-red-300 focus:border-red-500"
+                    : "border-gray-300 focus:border-blue-500"
                 }`}
               >
                 <option value="">Select status</option>
-                {surgeryStatuses.map(status => (
+                {surgeryStatuses.map((status) => (
                   <option key={status.value} value={status.value}>
                     {status.label}
                   </option>
@@ -320,7 +385,7 @@ export default function EditSurgeryModal({
               </label>
               <textarea
                 value={formData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
+                onChange={(e) => handleInputChange("notes", e.target.value)}
                 placeholder="Additional notes or special instructions..."
                 rows={3}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none text-black"
@@ -360,6 +425,5 @@ export default function EditSurgeryModal({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

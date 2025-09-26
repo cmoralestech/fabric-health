@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useToastContext } from "@/contexts/ToastContext";
 import {
   Card,
   CardContent,
@@ -52,6 +53,7 @@ export default function AddPatientModal({
   onClose,
   onPatientAdded,
 }: AddPatientModalProps) {
+  const { showSuccess, showError } = useToastContext();
   const [formData, setFormData] = useState<PatientFormData>({
     name: "",
     birthDate: "",
@@ -189,15 +191,26 @@ export default function AddPatientModal({
         });
         setCurrentStep(1);
         setErrors({});
+        showSuccess(
+          "Patient Added Successfully",
+          "The patient has been added to the system"
+        );
         onPatientAdded();
         onClose();
       } else {
         const errorData = await response.json();
         console.error("Failed to add patient:", errorData);
-        // You could show a toast notification here
+        showError(
+          "Failed to Add Patient",
+          errorData.error || "Please check your input and try again"
+        );
       }
     } catch (error) {
       console.error("Error adding patient:", error);
+      showError(
+        "Network Error",
+        "Unable to connect to the server. Please try again."
+      );
     } finally {
       setLoading(false);
     }
